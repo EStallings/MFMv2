@@ -45,10 +45,10 @@ namespace MFM
       this->NeedElement(&Element_Emitter<CC>::THE_INSTANCE);
       this->NeedElement(&Element_Consumer<CC>::THE_INSTANCE);
       this->NeedElement(&Element_Block<CC>::THE_INSTANCE);
-      this->NeedElement(&Element_ForkBomb1<CC>::THE_INSTANCE);
-      this->NeedElement(&Element_ForkBomb2<CC>::THE_INSTANCE);
-      this->NeedElement(&Element_ForkBomb3<CC>::THE_INSTANCE);
-      this->NeedElement(&Element_AntiForkBomb<CC>::THE_INSTANCE);
+      //    this->NeedElement(&Element_ForkBomb1<CC>::THE_INSTANCE);
+      //      this->NeedElement(&Element_ForkBomb2<CC>::THE_INSTANCE);
+      //      this->NeedElement(&Element_ForkBomb3<CC>::THE_INSTANCE);
+      //      this->NeedElement(&Element_AntiForkBomb<CC>::THE_INSTANCE);
       this->NeedElement(&Element_MQBar<CC>::THE_INSTANCE);
       this->NeedElement(&Element_Mover<CC>::THE_INSTANCE);
       this->NeedElement(&Element_Indexed<CC>::THE_INSTANCE);
@@ -60,6 +60,8 @@ namespace MFM
       this->NeedElement(&Element_Xtal_General<CC>::THE_INSTANCE);
       this->NeedElement(&Element_Creg<CC>::THE_INSTANCE);
       this->NeedElement(&Element_Dmover<CC>::THE_INSTANCE);
+      this->NeedElement(&Element_Tower_Red<CC>::THE_INSTANCE);
+      this->NeedElement(&Element_Scout_Red<CC>::THE_INSTANCE);
     }
 
   public:
