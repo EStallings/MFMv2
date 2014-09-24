@@ -1,5 +1,5 @@
 /*                                              -*- mode:C++ -*-
-  Element_Scout_Red.h Red Scout Agent
+  Element_Wanderer_Magenta.h Child Two in AbstractElement tutorial
   Copyright (C) 2014 The Regents of the University of New Mexico.  All rights reserved.
 
   This library is free software; you can redistribute it and/or
@@ -19,84 +19,75 @@
 */
 
 /**
-  \file   Element_Scout_Red.h Abstract Tower element for base class
+  \file Element_Wanderer_Magenta.h Child Two in AbstractElement tutorial
   \author Trent R. Small.
-  \author Ezra Stallings
   \date (C) 2014 All rights reserved.
   \lgpl
  */
-#ifndef ELEMENT_SCOUT_RED_H
-#define ELEMENT_SCOUT_RED_H
+#ifndef ELEMENT_WANDERER_MAGENTA_H
+#define ELEMENT_WANDERER_MAGENTA_H
 
 #include "Element.h"
 #include "EventWindow.h"
 #include "ElementTable.h"
 #include "itype.h"
-#include "P3Atom.h"
-#include "Abstract_Element_Scout.h"
-#include "Element_Breadcrumb_Red.h"
+#include "P1Atom.h"
+#include "AbstractElement_Wanderer.h"
 
 namespace MFM
 {
 
-  #define WAR_VERSION 1
+#define WANDERER_VERSION 1
 
   template <class CC>
-  class Element_Scout_Red : public Abstract_Element_Scout<CC>
+  class Element_Wanderer_Magenta : public AbstractElement_Wanderer<CC>
   {
     // Extract short names for parameter types
     typedef typename CC::ATOM_TYPE T;
     typedef typename CC::PARAM_CONFIG P;
     enum { R = P::EVENT_WINDOW_RADIUS };
 
-  public:
+   private:
+    ElementParameterS32<CC> m_wanderDistance;
 
-    static Element_Scout_Red<CC> THE_INSTANCE;
+   public:
+    static Element_Wanderer_Magenta THE_INSTANCE;
 
-    static const u32 TYPE()
+    Element_Wanderer_Magenta()
+      : AbstractElement_Wanderer<CC>(MFM_UUID_FOR("WandererMagenta", WANDERER_VERSION)),
+        m_wanderDistance(this, "magentaWanderDistance", "Wander Distance",
+                         "Wander Distance", 0, 1, R, 1)
     {
-      return THE_INSTANCE.GetType();
+      Element<CC>::SetAtomicSymbol("Wm");
+      Element<CC>::SetName("WandererMagenta");
     }
 
-    Element_Scout_Red()
-      : Abstract_Element_Scout<CC>(MFM_UUID_FOR("ScoutXBRed", WAR_VERSION))
+    virtual u32 PercentMovable(const T& you,
+                               const T& me, const SPoint& offset) const
     {
-      Element<CC>::SetAtomicSymbol("Sr");
-      Element<CC>::SetName("Red Scout");
+      return 100;
     }
 
     virtual u32 DefaultPhysicsColor() const
     {
-      return 0xffff0000;
+      return 0xffff00ff;
     }
 
-    virtual const T& GetDefaultAtom() const
+    virtual u32 DefaultLowlightColor() const
     {
-      static T defaultAtom(TYPE(),0,0,0);
-
-      Abstract_Element_Scout<CC>::
-	SetCurrentHealth(defaultAtom, (u32) Abstract_Element_Scout<CC>::m_defaultHealth.GetValue());
-
-      Abstract_Element_Scout<CC>::
-	SetCurrentDirection(defaultAtom, rand() % Dirs::DIR_COUNT);
-
-      return defaultAtom;
+      return 0xff7f007f;
     }
 
-    virtual const Abstract_Element_Breadcrumb<CC>& GetBreadcrumbElement() const
+   protected:
+    virtual u32 GetWanderDistance() const
     {
-      return Element_Breadcrumb_Red<CC>::THE_INSTANCE;
-    }
-
-    virtual const char* GetDescription() const
-    {
-      return "Red Scout element.";
+      return (u32)m_wanderDistance.GetValue();
     }
   };
 
   template <class CC>
-  Element_Scout_Red<CC> Element_Scout_Red<CC>::THE_INSTANCE;
+  Element_Wanderer_Magenta<CC> Element_Wanderer_Magenta<CC>::THE_INSTANCE;
 
 }
 
-#endif /* ELEMENT_SCOUT_RED_H */
+#endif /* ELEMENT_WANDERER_MAGENTA_H */

@@ -34,6 +34,7 @@
 #include "itype.h"
 #include "P3Atom.h"
 #include "Element_Empty.h"
+#include "Abstract_Element_Breadcrumb.h"
 
 namespace MFM
 {
@@ -65,11 +66,16 @@ namespace MFM
       CURRENT_HEALTH_LEN = 10,
 
       CURRENT_DIRECTION_POS = CURRENT_HEALTH_POS + CURRENT_HEALTH_LEN,
-      CURRENT_DIRECTION_LEN = 3
+      CURRENT_DIRECTION_LEN = 3,
+
+      CURRENT_BREADCRUMB_INDEX_POS = CURRENT_DIRECTION_POS + CURRENT_DIRECTION_LEN,
+      CURRENT_BREADCRUMB_INDEX_LEN = 8
     };
 
     typedef BitField<BitVector<BITS>, CURRENT_HEALTH_LEN, CURRENT_HEALTH_POS> AFCurrentHealth;
     typedef BitField<BitVector<BITS>, CURRENT_DIRECTION_LEN, CURRENT_DIRECTION_POS> AFCurrentDirection;
+    typedef BitField<BitVector<BITS>, CURRENT_BREADCRUMB_INDEX_LEN, CURRENT_BREADCRUMB_INDEX_POS>
+            AFCurrentBreadcrumbIndex;
 
   public:
 
@@ -103,6 +109,16 @@ namespace MFM
       AFCurrentDirection::Write(this->GetBits(us), direction);
     }
 
+    u32 GetCurrentBreadcrumbIndex(const T& us) const
+    {
+      return AFCurrentBreadcrumbIndex::Read(this->GetBits(us));
+    }
+
+    void SetCurrentBreadcrumbIndex(T& us, const u32 i) const
+    {
+      AFCurrentBreadcrumbIndex::Write(this->GetBits(us), i);
+    }
+
     virtual u32 PercentMovable(const T& you,
                                const T& me, const SPoint& offset) const
     {
@@ -115,9 +131,12 @@ namespace MFM
 
       SetCurrentHealth(newMe, GetCurrentHealth(me));
       SetCurrentDirection(newMe, GetCurrentDirection(me));
+      SetCurrentBreadcrumbIndex(newMe, GetCurrentBreadcrumbIndex(me));
 
       return newMe;
     }
+
+    virtual const Abstract_Element_Breadcrumb<CC>& GetBreadcrumbElement() const = 0;
 
     virtual void Behavior(EventWindow<CC>& window) const
     {
@@ -148,6 +167,13 @@ namespace MFM
       if(window.IsLiveSite(vec) &&
 	 window.GetRelativeAtom(vec).GetType() == Element_Empty<CC>::THE_INSTANCE.GetType())
       {
+	const Abstract_Element_Breadcrumb<CC>& bcClass = GetBreadcrumbElement();
+	T bc = bcClass.GetMutableAtom(bcClass.GetDefaultAtom());
+	bcClass.SetIndex(bc, GetCurrentBreadcrumbIndex(self));
+	SetCurrentBreadcrumbIndex(self, GetCurrentBreadcrumbIndex(self) + 1);
+	window.SetCenterAtom(self);
+
+	window.SetRelativeAtom(vec, bc);
 	window.SwapAtoms(vec, SPoint(0,0));
       }
     }

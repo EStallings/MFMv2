@@ -1,5 +1,5 @@
 /*                                              -*- mode:C++ -*-
-  Element_Scout_Red.h Red Scout Agent
+  Element_CheckerForkRed.h Basic Element exhibiting a circular dependency
   Copyright (C) 2014 The Regents of the University of New Mexico.  All rights reserved.
 
   This library is free software; you can redistribute it and/or
@@ -19,30 +19,26 @@
 */
 
 /**
-  \file   Element_Scout_Red.h Abstract Tower element for base class
+  \file   Element_CheckerForkRed.h Basic Element exhibiting a circular dependency
   \author Trent R. Small.
-  \author Ezra Stallings
   \date (C) 2014 All rights reserved.
   \lgpl
  */
-#ifndef ELEMENT_SCOUT_RED_H
-#define ELEMENT_SCOUT_RED_H
+#ifndef ELEMENT_CHECKERFORKRED_H
+#define ELEMENT_CHECKERFORKRED_H
 
 #include "Element.h"
 #include "EventWindow.h"
 #include "ElementTable.h"
 #include "itype.h"
-#include "P3Atom.h"
-#include "Abstract_Element_Scout.h"
-#include "Element_Breadcrumb_Red.h"
 
 namespace MFM
 {
 
-  #define WAR_VERSION 1
+  #define CHECKERFORK_VERSION 1
 
   template <class CC>
-  class Element_Scout_Red : public Abstract_Element_Scout<CC>
+  class Element_CheckerForkRed : public Element<CC>
   {
     // Extract short names for parameter types
     typedef typename CC::ATOM_TYPE T;
@@ -51,52 +47,43 @@ namespace MFM
 
   public:
 
-    static Element_Scout_Red<CC> THE_INSTANCE;
+    static Element_CheckerForkRed<CC> THE_INSTANCE;
 
-    static const u32 TYPE()
+    Element_CheckerForkRed()
+      : Element<CC>(MFM_UUID_FOR("CheckerForkRed", CHECKERFORK_VERSION))
     {
-      return THE_INSTANCE.GetType();
+      Element<CC>::SetAtomicSymbol("Cr");
+      Element<CC>::SetName("CheckerForkRed");
     }
 
-    Element_Scout_Red()
-      : Abstract_Element_Scout<CC>(MFM_UUID_FOR("ScoutXBRed", WAR_VERSION))
+    virtual u32 PercentMovable(const T& you,
+                               const T& me, const SPoint& offset) const
     {
-      Element<CC>::SetAtomicSymbol("Sr");
-      Element<CC>::SetName("Red Scout");
+      return 100;
     }
 
     virtual u32 DefaultPhysicsColor() const
     {
-      return 0xffff0000;
+      return 0xffffa500;
     }
 
-    virtual const T& GetDefaultAtom() const
+    virtual u32 DefaultLowlightColor() const
     {
-      static T defaultAtom(TYPE(),0,0,0);
-
-      Abstract_Element_Scout<CC>::
-	SetCurrentHealth(defaultAtom, (u32) Abstract_Element_Scout<CC>::m_defaultHealth.GetValue());
-
-      Abstract_Element_Scout<CC>::
-	SetCurrentDirection(defaultAtom, rand() % Dirs::DIR_COUNT);
-
-      return defaultAtom;
-    }
-
-    virtual const Abstract_Element_Breadcrumb<CC>& GetBreadcrumbElement() const
-    {
-      return Element_Breadcrumb_Red<CC>::THE_INSTANCE;
+      return 0xff7f5200;
     }
 
     virtual const char* GetDescription() const
     {
-      return "Red Scout element.";
+      return "Red Circular Dependency tutorial Element";
     }
+
+    virtual void Behavior(EventWindow<CC>& window) const;
   };
 
   template <class CC>
-  Element_Scout_Red<CC> Element_Scout_Red<CC>::THE_INSTANCE;
-
+  Element_CheckerForkRed<CC> Element_CheckerForkRed<CC>::THE_INSTANCE;
 }
 
-#endif /* ELEMENT_SCOUT_RED_H */
+#include "Element_CheckerForkRed.tcc"
+
+#endif /* ELEMENT_CHECKERFORKRED_H */
