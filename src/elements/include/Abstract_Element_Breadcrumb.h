@@ -86,10 +86,6 @@ namespace MFM
       AFAlertTimer::Write(this->GetBits(us), age);
     }
 
-    void Alert(T& us) const
-    {
-      SetAlertTimer(us, m_alertLength.GetValue());
-    }
 
     void DecrementAlert(T& us) const
     {
@@ -97,7 +93,7 @@ namespace MFM
 
       if(!IsAlert(us))
       {
-	Cooldown(us);
+  Cooldown(us);
       }
     }
 
@@ -139,12 +135,17 @@ namespace MFM
     Abstract_Element_Breadcrumb(const UUID & uuid) :
       Element<CC>(uuid),
       m_alertLength(this, "alertLength", "Alert Length",
-		    "Breadcrumb Alert timer initial length",
-		    1, 100, 255, 1),
+        "Breadcrumb Alert timer initial length",
+        1, 100, 255, 1),
       m_cooldownLength(this, "cooldownLength", "Cooldown Length",
-		    "Breadcrumb Cooldown timer initial length",
-		    1, 100, 255, 1)
+        "Breadcrumb Cooldown timer initial length",
+        1, 100, 255, 1)
     { }
+
+    void Alert(T& us) const
+    {
+      SetAlertTimer(us, m_alertLength.GetValue());
+    }
 
     void SetIndex(T& us, const u32 age) const
     {
@@ -173,44 +174,57 @@ namespace MFM
       const T& me = window.GetCenterAtom();
       if(IsCooldown(me))
       {
-	T mutableMe = GetMutableAtom(window.GetCenterAtom());
-	DecrementCooldown(mutableMe);
-	window.SetCenterAtom(mutableMe);
+        window.SetCenterAtom(Element_Empty<CC>::THE_INSTANCE.GetDefaultAtom());
+        // T mutableMe = GetMutableAtom(window.GetCenterAtom());
+      	// DecrementCooldown(mutableMe);
+      	// window.SetCenterAtom(mutableMe);
       }
       else if(IsAlert(me))
       {
-	T mutableMe = GetMutableAtom(window.GetCenterAtom());
-	DecrementAlert(mutableMe);
-	window.SetCenterAtom(mutableMe);
+      	T mutableMe = GetMutableAtom(window.GetCenterAtom());
+      	DecrementAlert(mutableMe);
+      	window.SetCenterAtom(mutableMe);
       }
       else
       {
-	MDist<R>& md = MDist<R>::get();
+      	MDist<R>& md = MDist<R>::get();
+        SPoint pred, succ;
+        bool fP = false, fS = false;
 
-	for(u32 i = md.GetFirstIndex(1); i <= md.GetLastIndex(R); i++)
-	{
-	  SPoint pt = md.GetPoint(i);
+        //Find predecessor and successor
+      	for(u32 i = md.GetFirstIndex(1); i <= md.GetLastIndex(R); i++)
+      	{
+      	  SPoint pt = md.GetPoint(i);
 
-	  if(window.GetRelativeAtom(pt).GetType() ==
-	     GetMyBreadcrumbType())
-	  {
-	    if(IsAlert(window.GetRelativeAtom(pt)))
-	    {
-	      T mutableMe = GetMutableAtom(window.GetCenterAtom());
-	      Alert(mutableMe);
-	      window.SetCenterAtom(mutableMe);
-	      return;
-	    }
-	  }
+      	  if(window.GetRelativeAtom(pt).GetType() ==
+      	     GetMyBreadcrumbType())
+      	  {
+            if(GetIndex(window.GetRelativeAtom(pt)) == GetIndex(me) - 1)
+            {
+              pred = pt;
+              fP = true;
+            }
+            else if(GetIndex(window.GetRelativeAtom(pt)) == GetIndex(me) + 1)
+            {
+              succ = pt;
+              fS = true;
+            }
+      	  }
+      	}
 
-	  if(window.GetRelativeAtom(pt).GetType() == Element_Data<CC>::THE_INSTANCE.GetType())
-	  {
-	    T mutableMe = GetMutableAtom(window.GetCenterAtom());
-	    Alert(mutableMe);
-	    window.SetCenterAtom(mutableMe);
-	    return;
-	  }
-	}
+        //Become alert if neighbor is alert
+        if((fP && IsAlert(window.GetRelativeAtom(pred))) || (fS && IsAlert(window.GetRelativeAtom(succ))))
+        {
+          T mutableMe = GetMutableAtom(window.GetCenterAtom());
+          Alert(mutableMe);
+          window.SetCenterAtom(mutableMe);
+          return;
+        }
+
+        //Move to average position
+        if(fP && fS){
+
+        }
       }
     }
   };

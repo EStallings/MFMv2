@@ -144,19 +144,39 @@ namespace MFM
       T self = GetMutableMe(constSelf);
       Random& rand = window.GetRandom();
 
+      //If out of health, die
       if(GetCurrentHealth(self) <= 0){
         window.SetCenterAtom(Element_Empty<CC>::THE_INSTANCE.GetDefaultAtom());
+        return;
       }
 
+      //Scan event window for enemies; if one spotted, replace self with alerted breadcrumb
+      MDist<R>& md = MDist<R>::get();
+      for(u32 i = md.GetFirstIndex(1); i <= md.GetLastIndex(R); i++)
+      {
+        SPoint pt = md.GetPoint(i);
+        
+        if(window.GetRelativeAtom(pt).GetType() == Element_Data<CC>::THE_INSTANCE.GetType())
+        {
+          const Abstract_Element_Breadcrumb<CC>& bcClass = GetBreadcrumbElement();
+          T bc = bcClass.GetMutableAtom(bcClass.GetDefaultAtom());
+          bcClass.SetIndex(bc, GetCurrentBreadcrumbIndex(self));
+          bcClass.Alert(bc);
+          window.SetCenterAtom(bc);
+          return;
+        }
+      }
+      //Randomly change direction & stutter movement
       if(rand.OneIn(m_changeDirectionChance.GetValue())){
         SetCurrentDirection(self, rand.Create(8));
       }
       Dir curDirection = (Dir)GetCurrentDirection(self);
-
+      
       if(rand.OneIn(m_stutterChance.GetValue())){
-	curDirection = (Dir)rand.Create(8);
+        curDirection = (Dir)rand.Create(8);
       }
 
+      //Move, leaving a breadcrumb behind
       SPoint vec;
       Dirs::FillDir(vec, curDirection);
       u32 speed = Dirs::IsCorner(curDirection) ? 2 : 4;
@@ -165,16 +185,16 @@ namespace MFM
       window.SetCenterAtom(self);
 
       if(window.IsLiveSite(vec) &&
-	 window.GetRelativeAtom(vec).GetType() == Element_Empty<CC>::THE_INSTANCE.GetType())
+        window.GetRelativeAtom(vec).GetType() == Element_Empty<CC>::THE_INSTANCE.GetType())
       {
-	const Abstract_Element_Breadcrumb<CC>& bcClass = GetBreadcrumbElement();
-	T bc = bcClass.GetMutableAtom(bcClass.GetDefaultAtom());
-	bcClass.SetIndex(bc, GetCurrentBreadcrumbIndex(self));
-	SetCurrentBreadcrumbIndex(self, GetCurrentBreadcrumbIndex(self) + 1);
-	window.SetCenterAtom(self);
+      	const Abstract_Element_Breadcrumb<CC>& bcClass = GetBreadcrumbElement();
+      	T bc = bcClass.GetMutableAtom(bcClass.GetDefaultAtom());
+      	bcClass.SetIndex(bc, GetCurrentBreadcrumbIndex(self));
+      	SetCurrentBreadcrumbIndex(self, GetCurrentBreadcrumbIndex(self) + 1);
+      	window.SetCenterAtom(self);
 
-	window.SetRelativeAtom(vec, bc);
-	window.SwapAtoms(vec, SPoint(0,0));
+      	window.SetRelativeAtom(vec, bc);
+      	window.SwapAtoms(vec, SPoint(0,0));
       }
     }
   };
