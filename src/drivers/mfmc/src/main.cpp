@@ -65,6 +65,7 @@ namespace MFM
       this->NeedElement(&Element_Wanderer_Cyan<CC>::THE_INSTANCE);
       this->NeedElement(&Element_Wanderer_Magenta<CC>::THE_INSTANCE);
       this->NeedElement(&Element_Tower_Red<CC>::THE_INSTANCE);
+      this->NeedElement(&Element_Colonist_Red<CC>::THE_INSTANCE);
       this->NeedElement(&Element_Scout_Red<CC>::THE_INSTANCE);
       this->NeedElement(&Element_Breadcrumb_Red<CC>::THE_INSTANCE);
     }

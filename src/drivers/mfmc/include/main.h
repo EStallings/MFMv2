@@ -12,5 +12,6 @@
 #include "Element_Creg.h"
 #include "Element_Tower_Red.h"
 #include "Element_Scout_Red.h"
+#include "Element_Colonist_Red.h"
 
 #endif /* MAIN_H */

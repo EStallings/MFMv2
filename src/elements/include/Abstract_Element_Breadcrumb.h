@@ -55,7 +55,13 @@ namespace MFM
       INDEX_POS = P3Atom<P>::P3_STATE_BITS_POS,
       INDEX_LEN = 8,
 
-      ALERT_TIMER_POS = INDEX_POS + INDEX_LEN,
+      PREV_INDEX_POS = INDEX_POS + INDEX_LEN,
+      PREV_INDEX_LEN = 8,
+
+      NEXT_INDEX_POS = PREV_INDEX_POS + PREV_INDEX_LEN,
+      NEXT_INDEX_LEN = 8,
+
+      ALERT_TIMER_POS = NEXT_INDEX_POS + NEXT_INDEX_LEN,
       ALERT_TIMER_LEN = 8,
 
       COOLDOWN_TIMER_POS = ALERT_TIMER_POS + ALERT_TIMER_LEN,
@@ -64,17 +70,14 @@ namespace MFM
 
    protected:
     typedef BitField<BitVector<BITS>, INDEX_LEN, INDEX_POS> AFIndex;
+    typedef BitField<BitVector<BITS>, PREV_INDEX_LEN, PREV_INDEX_POS> AFPrevIndex;
+    typedef BitField<BitVector<BITS>, NEXT_INDEX_LEN, NEXT_INDEX_POS> AFNextIndex;
     typedef BitField<BitVector<BITS>, ALERT_TIMER_LEN, ALERT_TIMER_POS> AFAlertTimer;
     typedef BitField<BitVector<BITS>, COOLDOWN_TIMER_LEN, COOLDOWN_TIMER_POS> AFCooldownTimer;
 
    private:
     ElementParameterS32<CC> m_alertLength;
     ElementParameterS32<CC> m_cooldownLength;
-
-    u32 GetIndex(const T& us) const
-    {
-      return AFIndex::Read(this->GetBits(us));
-    }
 
     u32 GetAlertTimer(const T& us) const
     {
@@ -93,7 +96,7 @@ namespace MFM
 
       if(!IsAlert(us))
       {
-  Cooldown(us);
+        Cooldown(us);
       }
     }
 
@@ -112,11 +115,6 @@ namespace MFM
       return GetCooldownTimer(us) > 0;
     }
 
-    void Cooldown(T& us) const
-    {
-      SetCooldownTimer(us, m_cooldownLength.GetValue());
-    }
-
     void DecrementCooldown(T& us) const
     {
       SetCooldownTimer(us, GetCooldownTimer(us) - 1);
@@ -129,6 +127,11 @@ namespace MFM
     bool IsAlert(const T& us) const
     {
       return GetAlertTimer(us) > 0;
+    }
+
+    const u32 ManDist(const u32 x1, const u32 x2, const u32 y1, const u32 y2)  const
+    {
+      return abs(x1-x2)+abs(y1-y2);
     }
 
    public:
@@ -146,10 +149,41 @@ namespace MFM
     {
       SetAlertTimer(us, m_alertLength.GetValue());
     }
-
-    void SetIndex(T& us, const u32 age) const
+    
+    void Cooldown(T& us) const
     {
-      AFIndex::Write(this->GetBits(us), age);
+      SetCooldownTimer(us, m_cooldownLength.GetValue());
+    }
+
+
+    u32 GetIndex(const T& us) const
+    {
+      return AFIndex::Read(this->GetBits(us));
+    }
+
+    void SetIndex(T& us, const u32 idx) const
+    {
+      AFIndex::Write(this->GetBits(us), idx);
+    }
+
+    u32 GetPrevIndex(const T& us) const
+    {
+      return AFPrevIndex::Read(this->GetBits(us));
+    }
+
+    void SetPrevIndex(T& us, const u32 idx) const
+    {
+      AFPrevIndex::Write(this->GetBits(us), idx);
+    }
+
+    u32 GetNextIndex(const T& us) const
+    {
+      return AFNextIndex::Read(this->GetBits(us));
+    }
+
+    void SetNextIndex(T& us, const u32 idx) const
+    {
+      AFNextIndex::Write(this->GetBits(us), idx);
     }
 
     T GetMutableAtom(const T& oldMe) const
@@ -159,6 +193,8 @@ namespace MFM
       SetCooldownTimer(me, GetCooldownTimer(oldMe));
       SetAlertTimer(me, GetAlertTimer(oldMe));
       SetIndex(me, GetIndex(oldMe));
+      SetPrevIndex(me, GetPrevIndex(oldMe));
+      SetNextIndex(me, GetNextIndex(oldMe));
 
       return me;
     }
@@ -174,10 +210,10 @@ namespace MFM
       const T& me = window.GetCenterAtom();
       if(IsCooldown(me))
       {
-        window.SetCenterAtom(Element_Empty<CC>::THE_INSTANCE.GetDefaultAtom());
-        // T mutableMe = GetMutableAtom(window.GetCenterAtom());
-      	// DecrementCooldown(mutableMe);
-      	// window.SetCenterAtom(mutableMe);
+        //window.SetCenterAtom(Element_Empty<CC>::THE_INSTANCE.GetDefaultAtom());
+         T mutableMe = GetMutableAtom(window.GetCenterAtom());
+      	 DecrementCooldown(mutableMe);
+      	 window.SetCenterAtom(mutableMe);
       }
       else if(IsAlert(me))
       {
@@ -199,18 +235,26 @@ namespace MFM
       	  if(window.GetRelativeAtom(pt).GetType() ==
       	     GetMyBreadcrumbType())
       	  {
-            if(GetIndex(window.GetRelativeAtom(pt)) == GetIndex(me) - 1)
+            if(GetIndex(window.GetRelativeAtom(pt)) == GetPrevIndex(me))
             {
               pred = pt;
               fP = true;
             }
-            else if(GetIndex(window.GetRelativeAtom(pt)) == GetIndex(me) + 1)
+            else if(GetIndex(window.GetRelativeAtom(pt)) == GetNextIndex(me))
             {
               succ = pt;
               fS = true;
             }
       	  }
       	}
+
+        //if no neighbors, alert
+        if(!fP && !fS){
+          T mutableMe = GetMutableAtom(window.GetCenterAtom());
+          Alert(mutableMe);
+          window.SetCenterAtom(mutableMe);
+          return;
+        }
 
         //Become alert if neighbor is alert
         if((fP && IsAlert(window.GetRelativeAtom(pred))) || (fS && IsAlert(window.GetRelativeAtom(succ))))
@@ -223,7 +267,28 @@ namespace MFM
 
         //Move to average position
         if(fP && fS){
+          if(ManDist(pred.GetX(), succ.GetX(), pred.GetY(), succ.GetY()) <= 4){ //pred and succ are within sqrt(16) = 4 steps
+            window.SetCenterAtom(Element_Empty<CC>::THE_INSTANCE.GetDefaultAtom());
 
+            T predAtom = GetMutableAtom(window.GetRelativeAtom(pred));
+            SetNextIndex(predAtom, GetNextIndex(me));
+            window.SetRelativeAtom(pred, predAtom);
+
+            T succAtom = GetMutableAtom(window.GetRelativeAtom(succ));
+            SetPrevIndex(succAtom, GetPrevIndex(me));
+            window.SetRelativeAtom(succ, succAtom);
+          }
+          else{
+            u32 Xpoint = pred.GetX() + succ.GetX();
+            Xpoint = (abs(Xpoint) > 1) ? Xpoint/2 : Xpoint;
+
+            u32 Ypoint = pred.GetY() + succ.GetY();
+            Ypoint = (abs(Ypoint) > 1) ? Ypoint/2 : Ypoint;
+
+            SPoint vec = SPoint(Xpoint,Ypoint);
+            if(window.IsLiveSite(vec) && window.GetRelativeAtom(vec).GetType() == Element_Empty<CC>::THE_INSTANCE.GetType())
+              window.SwapAtoms(vec, SPoint(0,0));
+          }
         }
       }
     }

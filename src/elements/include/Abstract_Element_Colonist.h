@@ -1,5 +1,5 @@
 /*                                              -*- mode:C++ -*-
-  Abstract_Element_Scout.h Abstract Tower element for base class
+  Abstract_Element_Colonist.h Abstract Tower element for base class
   Copyright (C) 2014 The Regents of the University of New Mexico.  All rights reserved.
 
   This library is free software; you can redistribute it and/or
@@ -19,14 +19,14 @@
 */
 
 /**
-  \file   Abstract_Element_Scout.h Abstract Tower element for base class
+  \file   Abstract_Element_Colonist.h Abstract Tower element for base class
   \author Trent R. Small.
   \author Ezra Stallings
   \date (C) 2014 All rights reserved.
   \lgpl
  */
-#ifndef ABSTRACT_ELEMENT_SCOUT_H
-#define ABSTRACT_ELEMENT_SCOUT_H
+#ifndef ABSTRACT_ELEMENT_COLONIST_H
+#define ABSTRACT_ELEMENT_COLONIST_H
 
 #include "Element.h"
 #include "EventWindow.h"
@@ -34,7 +34,7 @@
 #include "itype.h"
 #include "P3Atom.h"
 #include "Element_Empty.h"
-#include "Abstract_Element_Breadcrumb.h"
+#include "Abstract_Element_Tower.h"
 
 namespace MFM
 {
@@ -42,7 +42,7 @@ namespace MFM
   #define WAR_VERSION 1
 
   template <class CC>
-  class Abstract_Element_Scout : public Element<CC>
+  class Abstract_Element_Colonist : public Element<CC>
   {
     // Extract short names for parameter types
     typedef typename CC::ATOM_TYPE T;
@@ -54,6 +54,7 @@ namespace MFM
     ElementParameterS32<CC> m_defaultHealth;
     ElementParameterS32<CC> m_changeDirectionChance;
     ElementParameterS32<CC> m_stutterChance;
+    ElementParameterS32<CC> m_towerChance;
 
     enum
     {
@@ -68,25 +69,26 @@ namespace MFM
       CURRENT_DIRECTION_POS = CURRENT_HEALTH_POS + CURRENT_HEALTH_LEN,
       CURRENT_DIRECTION_LEN = 3,
 
-      CURRENT_BREADCRUMB_INDEX_POS = CURRENT_DIRECTION_POS + CURRENT_DIRECTION_LEN,
-      CURRENT_BREADCRUMB_INDEX_LEN = 8
+      TOWER_CHANCE_POS = CURRENT_DIRECTION_POS + CURRENT_DIRECTION_LEN,
+      TOWER_CHANCE_LEN = 8
     };
 
     typedef BitField<BitVector<BITS>, CURRENT_HEALTH_LEN, CURRENT_HEALTH_POS> AFCurrentHealth;
     typedef BitField<BitVector<BITS>, CURRENT_DIRECTION_LEN, CURRENT_DIRECTION_POS> AFCurrentDirection;
-    typedef BitField<BitVector<BITS>, CURRENT_BREADCRUMB_INDEX_LEN, CURRENT_BREADCRUMB_INDEX_POS>
-            AFCurrentBreadcrumbIndex;
+    typedef BitField<BitVector<BITS>, TOWER_CHANCE_LEN, TOWER_CHANCE_POS> AFTowerChance;
 
   public:
 
-    Abstract_Element_Scout(UUID u)
+    Abstract_Element_Colonist(UUID u)
       : Element<CC>(u),
         m_defaultHealth(this, "defaultHealth", "Default Health",
-                  "This is the health the scout will start with.", 1, 200, 1000, 10),
+                  "This is the health the colonist will start with.", 1, 200, 1000, 10),
         m_changeDirectionChance(this, "changeDirectionChance", "Change Direction Chance",
-		  "This is the chance of changing direction in a given tick.", 1, 90, 100, 1),
-	m_stutterChance(this, "stutterChance", "Stutter Movement Chance",
-			"This is the chance of stuttering movement.", 1, 50, 100,1)
+		            "This is the chance of changing direction in a given tick.", 1, 90, 100, 1),
+      	m_stutterChance(this, "stutterChance", "Stutter Movement Chance",
+      			    "This is the chance of stuttering movement.", 1, 50, 100,1),
+        m_towerChance(this, "towerChance", "Tower Placement Chance",
+                "This is the chance of making a tower, decreases over time.", 50,1000,200,10)
     {}
 
     u32 GetCurrentHealth(const T& us) const
@@ -109,14 +111,14 @@ namespace MFM
       AFCurrentDirection::Write(this->GetBits(us), direction);
     }
 
-    u32 GetCurrentBreadcrumbIndex(const T& us) const
+    u32 GetTowerChance(const T& us) const
     {
-      return AFCurrentBreadcrumbIndex::Read(this->GetBits(us));
+      return AFTowerChance::Read(this->GetBits(us));
     }
 
-    void SetCurrentBreadcrumbIndex(T& us, const u32 i) const
+    void SetTowerChance(T& us, const u32 i) const
     {
-      AFCurrentBreadcrumbIndex::Write(this->GetBits(us), i);
+      AFTowerChance::Write(this->GetBits(us), i);
     }
 
     virtual u32 PercentMovable(const T& you,
@@ -131,12 +133,12 @@ namespace MFM
 
       SetCurrentHealth(newMe, GetCurrentHealth(me));
       SetCurrentDirection(newMe, GetCurrentDirection(me));
-      SetCurrentBreadcrumbIndex(newMe, GetCurrentBreadcrumbIndex(me));
+      SetTowerChance(newMe, GetTowerChance(me));
 
       return newMe;
     }
 
-    virtual const Abstract_Element_Breadcrumb<CC>& GetBreadcrumbElement() const = 0;
+    virtual const Abstract_Element_Tower<CC>& GetTowerElement() const = 0;
 
     virtual void Behavior(EventWindow<CC>& window) const
     {
@@ -150,22 +152,17 @@ namespace MFM
         return;
       }
 
-      //Scan event window for enemies; if one spotted, replace self with alerted breadcrumb
-      MDist<R>& md = MDist<R>::get();
-      for(u32 i = md.GetFirstIndex(1); i <= md.GetLastIndex(R); i++)
+      //Reduce tower chance
+      SetTowerChance(self, GetTowerChance(self) - 1);
+
+      //Possibly turn into tower
+      if(rand.OneIn(GetTowerChance(self)))
       {
-        SPoint pt = md.GetPoint(i);
-        
-        if(window.GetRelativeAtom(pt).GetType() == Element_Data<CC>::THE_INSTANCE.GetType())
-        {
-          const Abstract_Element_Breadcrumb<CC>& bcClass = GetBreadcrumbElement();
-          T bc = bcClass.GetMutableAtom(bcClass.GetDefaultAtom());
-          bcClass.SetIndex(bc, GetCurrentBreadcrumbIndex(self));
-          bcClass.Alert(bc);
-          window.SetCenterAtom(bc);
-          return;
-        }
+        const Abstract_Element_Tower<CC>& twClass = GetTowerElement();
+        window.SetCenterAtom(twClass.GetDefaultAtom());
+        return;
       }
+
       //Randomly change direction & stutter movement
       if(rand.OneIn(m_changeDirectionChance.GetValue())){
         SetCurrentDirection(self, rand.Create(8));
@@ -176,8 +173,9 @@ namespace MFM
         curDirection = (Dir)rand.Create(8);
       }
 
-      //Move, leaving a breadcrumb behind
+      //Move
       window.SetCenterAtom(self);
+
       SPoint vec;
       Dirs::FillDir(vec, curDirection);
       u32 speed = Dirs::IsCorner(curDirection) ? 2 : 4;
@@ -189,16 +187,6 @@ namespace MFM
         if(window.IsLiveSite(vec) &&
           window.GetRelativeAtom(vec).GetType() == Element_Empty<CC>::THE_INSTANCE.GetType())
         {
-        	const Abstract_Element_Breadcrumb<CC>& bcClass = GetBreadcrumbElement();
-        	T bc = bcClass.GetMutableAtom(bcClass.GetDefaultAtom());
-        	bcClass.SetIndex(bc, GetCurrentBreadcrumbIndex(self));
-          bcClass.SetPrevIndex(bc, GetCurrentBreadcrumbIndex(self)-1);
-          bcClass.SetNextIndex(bc, GetCurrentBreadcrumbIndex(self)+1);
-          bcClass.Cooldown(bc);
-        	SetCurrentBreadcrumbIndex(self, GetCurrentBreadcrumbIndex(self) + 1);
-        	window.SetCenterAtom(self);
-
-        	window.SetRelativeAtom(vec, bc);
         	window.SwapAtoms(vec, SPoint(0,0));
           return;
         }
@@ -207,4 +195,4 @@ namespace MFM
   };
 }
 
-#endif /* ABSTRACT_ELEMENT_SCOUT_H */
+#endif /* ABSTRACT_ELEMENT_COLONIST_H */
