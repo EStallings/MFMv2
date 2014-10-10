@@ -84,9 +84,9 @@ namespace MFM
         m_defaultHealth(this, "defaultHealth", "Default Health",
                   "This is the health the scout will start with.", 1, 200, 1000, 10),
         m_changeDirectionChance(this, "changeDirectionChance", "Change Direction Chance",
-		  "This is the chance of changing direction in a given tick.", 1, 90, 100, 1),
+		  "This is the chance of changing direction in a given tick.", 1, 20, 100, 1),
 	m_stutterChance(this, "stutterChance", "Stutter Movement Chance",
-			"This is the chance of stuttering movement.", 1, 50, 100,1)
+			"This is the chance of stuttering movement.", 1, 10, 100,1)
     {}
 
     u32 GetCurrentHealth(const T& us) const
@@ -191,7 +191,7 @@ namespace MFM
         {
         	const Abstract_Element_Breadcrumb<CC>& bcClass = GetBreadcrumbElement();
         	T bc = bcClass.GetMutableAtom(bcClass.GetDefaultAtom());
-        	bcClass.SetIndex(bc, GetCurrentBreadcrumbIndex(self));
+        	bcClass.SetIndex(bc,     GetCurrentBreadcrumbIndex(self));
           bcClass.SetPrevIndex(bc, GetCurrentBreadcrumbIndex(self)-1);
           bcClass.SetNextIndex(bc, GetCurrentBreadcrumbIndex(self)+1);
           bcClass.Cooldown(bc);

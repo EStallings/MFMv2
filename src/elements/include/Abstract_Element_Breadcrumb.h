@@ -129,12 +129,7 @@ namespace MFM
       return GetAlertTimer(us) > 0;
     }
 
-    const u32 ManDist(const u32 x1, const u32 x2, const u32 y1, const u32 y2)  const
-    {
-      return abs(x1-x2)+abs(y1-y2);
-    }
-
-   public:
+    public:
     Abstract_Element_Breadcrumb(const UUID & uuid) :
       Element<CC>(uuid),
       m_alertLength(this, "alertLength", "Alert Length",
@@ -188,13 +183,14 @@ namespace MFM
 
     T GetMutableAtom(const T& oldMe) const
     {
-      T me(oldMe.GetType(), 0, 0, 0);
+      T me = oldMe;
+      // T me(oldMe.GetType(), 0, 0, 0);
 
-      SetCooldownTimer(me, GetCooldownTimer(oldMe));
-      SetAlertTimer(me, GetAlertTimer(oldMe));
-      SetIndex(me, GetIndex(oldMe));
-      SetPrevIndex(me, GetPrevIndex(oldMe));
-      SetNextIndex(me, GetNextIndex(oldMe));
+      // SetCooldownTimer(me, GetCooldownTimer(oldMe));
+      // SetAlertTimer(me, GetAlertTimer(oldMe));
+      // SetIndex(me, GetIndex(oldMe));
+      // SetPrevIndex(me, GetPrevIndex(oldMe));
+      // SetNextIndex(me, GetNextIndex(oldMe));
 
       return me;
     }
@@ -204,37 +200,37 @@ namespace MFM
     {
       return 0;
     }
-
     virtual void Behavior(EventWindow<CC>& window) const
     {
       const T& me = window.GetCenterAtom();
+      LOG.Debug("Examining BC:%d; Pred=%d, Succ=%d", GetIndex(me), GetPrevIndex(me), GetNextIndex(me));
       if(IsCooldown(me))
       {
         //window.SetCenterAtom(Element_Empty<CC>::THE_INSTANCE.GetDefaultAtom());
-         T mutableMe = GetMutableAtom(window.GetCenterAtom());
-      	 DecrementCooldown(mutableMe);
-      	 window.SetCenterAtom(mutableMe);
+        T mutableMe = GetMutableAtom(window.GetCenterAtom());
+        DecrementCooldown(mutableMe);
+        window.SetCenterAtom(mutableMe);
       }
       else if(IsAlert(me))
       {
-      	T mutableMe = GetMutableAtom(window.GetCenterAtom());
-      	DecrementAlert(mutableMe);
-      	window.SetCenterAtom(mutableMe);
+        T mutableMe = GetMutableAtom(window.GetCenterAtom());
+        DecrementAlert(mutableMe);
+        window.SetCenterAtom(mutableMe);
       }
       else
       {
-      	MDist<R>& md = MDist<R>::get();
+        MDist<R>& md = MDist<R>::get();
         SPoint pred, succ;
         bool fP = false, fS = false;
 
         //Find predecessor and successor
-      	for(u32 i = md.GetFirstIndex(1); i <= md.GetLastIndex(R); i++)
-      	{
-      	  SPoint pt = md.GetPoint(i);
+        for(u32 i = md.GetFirstIndex(1); i <= md.GetLastIndex(R); i++)
+        {
+          SPoint pt = md.GetPoint(i);
 
-      	  if(window.GetRelativeAtom(pt).GetType() ==
-      	     GetMyBreadcrumbType())
-      	  {
+          if(window.GetRelativeAtom(pt).GetType() ==
+             GetMyBreadcrumbType())
+          {
             if(GetIndex(window.GetRelativeAtom(pt)) == GetPrevIndex(me))
             {
               pred = pt;
@@ -245,11 +241,11 @@ namespace MFM
               succ = pt;
               fS = true;
             }
-      	  }
-      	}
+          }
+        }
 
         //if no neighbors, alert
-        if(!fP && !fS){
+        if(!fP || !fS){
           T mutableMe = GetMutableAtom(window.GetCenterAtom());
           Alert(mutableMe);
           window.SetCenterAtom(mutableMe);
@@ -259,16 +255,18 @@ namespace MFM
         //Become alert if neighbor is alert
         if((fP && IsAlert(window.GetRelativeAtom(pred))) || (fS && IsAlert(window.GetRelativeAtom(succ))))
         {
-          T mutableMe = GetMutableAtom(window.GetCenterAtom());
-          Alert(mutableMe);
-          window.SetCenterAtom(mutableMe);
-          return;
+          //T mutableMe = GetMutableAtom(window.GetCenterAtom());
+          //Alert(mutableMe);
+          //window.SetCenterAtom(mutableMe);
+          //return;
         }
+        LOG.Debug("Examining BC:%d; Pred=%d, Succ=%d", GetIndex(me), GetPrevIndex(me), GetNextIndex(me));
 
         //Move to average position
         if(fP && fS){
-          if(ManDist(pred.GetX(), succ.GetX(), pred.GetY(), succ.GetY()) <= 4){ //pred and succ are within sqrt(16) = 4 steps
-            window.SetCenterAtom(Element_Empty<CC>::THE_INSTANCE.GetDefaultAtom());
+          if((pred-succ).GetManhattanLength() <= R){
+
+            LOG.Debug("Deleting BC:%d; Pred=%d, Succ=%d", GetIndex(me), GetPrevIndex(me), GetNextIndex(me));
 
             T predAtom = GetMutableAtom(window.GetRelativeAtom(pred));
             SetNextIndex(predAtom, GetNextIndex(me));
@@ -277,6 +275,8 @@ namespace MFM
             T succAtom = GetMutableAtom(window.GetRelativeAtom(succ));
             SetPrevIndex(succAtom, GetPrevIndex(me));
             window.SetRelativeAtom(succ, succAtom);
+
+            window.SetCenterAtom(Element_Empty<CC>::THE_INSTANCE.GetDefaultAtom());
           }
           else{
             u32 Xpoint = pred.GetX() + succ.GetX();
