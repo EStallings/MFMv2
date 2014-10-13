@@ -1,5 +1,5 @@
 /*                                              -*- mode:C++ -*-
-  Element_Colonist_Red.h Red Colonist Agent
+  Element_Soldier_Red.h Red Soldier Agent
   Copyright (C) 2014 The Regents of the University of New Mexico.  All rights reserved.
 
   This library is free software; you can redistribute it and/or
@@ -19,21 +19,21 @@
 */
 
 /**
-  \file   Element_Colonist_Red.h Abstract Tower element for base class
+  \file   Element_Soldier_Red.h Abstract Tower element for base class
   \author Trent R. Small.
   \author Ezra Stallings
   \date (C) 2014 All rights reserved.
   \lgpl
  */
-#ifndef ELEMENT_COLONIST_RED_H
-#define ELEMENT_COLONIST_RED_H
+#ifndef ELEMENT_SOLDIER_RED_H
+#define ELEMENT_SOLDIER_RED_H
 
 #include "Element.h"
 #include "EventWindow.h"
 #include "ElementTable.h"
 #include "itype.h"
 #include "P3Atom.h"
-#include "Abstract_Element_Colonist.h"
+#include "Abstract_Element_Soldier.h"
 #include "Element_Tower_Red.h"
 
 namespace MFM
@@ -42,7 +42,7 @@ namespace MFM
   #define WAR_VERSION 1
 
   template <class CC>
-  class Element_Colonist_Red : public Abstract_Element_Colonist<CC>
+  class Element_Soldier_Red : public Abstract_Element_Soldier<CC>
   {
     // Extract short names for parameter types
     typedef typename CC::ATOM_TYPE T;
@@ -51,18 +51,18 @@ namespace MFM
 
   public:
 
-    static Element_Colonist_Red<CC> THE_INSTANCE;
+    static Element_Soldier_Red<CC> THE_INSTANCE;
 
     static const u32 TYPE()
     {
       return THE_INSTANCE.GetType();
     }
 
-    Element_Colonist_Red()
-      : Abstract_Element_Colonist<CC>(MFM_UUID_FOR("ColonistXBRed", WAR_VERSION))
+    Element_Soldier_Red()
+      : Abstract_Element_Soldier<CC>(MFM_UUID_FOR("SoldierXBRed", WAR_VERSION))
     {
-      Element<CC>::SetAtomicSymbol("Cr");
-      Element<CC>::SetName("Red Colonist");
+      Element<CC>::SetAtomicSymbol("Sr");
+      Element<CC>::SetName("Red Soldier");
     }
 
     virtual u32 DefaultPhysicsColor() const
@@ -74,14 +74,8 @@ namespace MFM
     {
       static T defaultAtom(TYPE(),0,0,0);
 
-      Abstract_Element_Colonist<CC>::
-	     SetCurrentHealth(defaultAtom, (u32) Abstract_Element_Colonist<CC>::m_defaultHealth.GetValue());
-
-      Abstract_Element_Colonist<CC>::
-	     SetCurrentDirection(defaultAtom, rand() % Dirs::DIR_COUNT);
-
-      Abstract_Element_Colonist<CC>::
-       SetTowerChance(defaultAtom, (u32) Abstract_Element_Colonist<CC>::m_defaultTowerChance.GetValue());
+      Abstract_Element_Soldier<CC>::
+	SetCurrentHealth(defaultAtom, (u32) Abstract_Element_Soldier<CC>::m_defaultHealth.GetValue());
 
       return defaultAtom;
     }
@@ -93,13 +87,13 @@ namespace MFM
 
     virtual const char* GetDescription() const
     {
-      return "Red Colonist element.";
+      return "Red Soldier element.";
     }
   };
 
   template <class CC>
-  Element_Colonist_Red<CC> Element_Colonist_Red<CC>::THE_INSTANCE;
+  Element_Soldier_Red<CC> Element_Soldier_Red<CC>::THE_INSTANCE;
 
 }
 
-#endif /* ELEMENT_COLONIST_RED_H */
+#endif /* ELEMENT_SOLDIER_RED_H */

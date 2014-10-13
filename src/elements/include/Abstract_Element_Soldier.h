@@ -106,7 +106,10 @@ namespace MFM
       return newMe;
     }
 
-    virtual const Abstract_Element_Tower<CC>& GetTowerElement() const = 0;
+    virtual const Abstract_Element_Tower<CC>& GetScoutElement()      const = 0;
+    virtual const Abstract_Element_Tower<CC>& GetTowerElement()      const = 0;
+    virtual const Abstract_Element_Tower<CC>& GetColonistElement()   const = 0;
+    virtual const Abstract_Element_Tower<CC>& GetBreadcrumbElement() const = 0;
 
     virtual void Behavior(EventWindow<CC>& window) const
     {
@@ -120,45 +123,35 @@ namespace MFM
         return;
       }
 
-      //Reduce tower chance
-      SetTowerChance(self, GetTowerChance(self) - 1);
+      //Look through event window, and:
+      // count enemy atoms nearby, and select a random one if applicable
+      // count nearby breadcrumbs, and select the highest-indexed one if applicable
+      // count nearby empty spaces, and select the one nearest a high-indexed breadcrumb
+      
+      SPoint emptyLocation, enemyLocation, breadcrumbLocation;
+      u32 emptyCount, enemyCount, breadcrumbCount;
+      emptyCount = enemyCount = breadcrumbCount = 0;
+      MDist<R> n = MDist<R>::get();
 
-      //Possibly turn into tower
-      if(rand.OneIn(GetTowerChance(self)))
+      for(u32 i = n.GetFirstIndex(1); i <= n.GetLastIndex(R); i++)
       {
-        const Abstract_Element_Tower<CC>& twClass = GetTowerElement();
-        window.SetCenterAtom(twClass.GetDefaultAtom());
-        return;
-      }
-
-      //Randomly change direction & stutter movement
-      if(rand.OneIn(m_attackDamage.GetValue())){
-        SetCurrentDirection(self, rand.Create(8));
-      }
-      Dir curDirection = (Dir)GetCurrentDirection(self);
-      
-      if(rand.OneIn(m_stutterChance.GetValue())){
-        curDirection = (Dir)rand.Create(8);
-      }
-
-      //Move
-      window.SetCenterAtom(self);
-
-      SPoint vec;
-      Dirs::FillDir(vec, curDirection);
-      u32 speed = Dirs::IsCorner(curDirection) ? 2 : 4;
-      
-      for(u32 it = 0; it < 2; it++){
-        vec *= (speed-it);
+        SPoint searchLoc = n.GetPoint(i);
         
+        //Enemy identification TODO
 
-        if(window.IsLiveSite(vec) &&
-          window.GetRelativeAtom(vec).GetType() == Element_Empty<CC>::THE_INSTANCE.GetType())
+        //Breadcrumb identification TODO
+
+        //Empty space identification
+        if(window.GetRelativeAtom(searchLoc).GetType() == Element_Empty<CC>::THE_INSTANCE.GetType())
         {
-        	window.SwapAtoms(vec, SPoint(0,0));
-          return;
+          emptyCount++;
+          if(window.GetRandom().OneIn(emptyCount))
+          {
+            emptyLocation = searchLoc;
+          }
         }
       }
+      
     }
   };
 }

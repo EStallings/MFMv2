@@ -74,12 +74,14 @@ namespace MFM
       static T defaultAtom(TYPE(),0,0,0);
 
       Abstract_Element_Tower<CC>::
-	SetCurrentHealth(defaultAtom, (u32) Abstract_Element_Tower<CC>::m_defaultHealth.GetValue());
+	    SetCurrentHealth(defaultAtom, (u32) Abstract_Element_Tower<CC>::m_defaultHealth.GetValue());
 
       return defaultAtom;
     }
 
     const typename CC::ATOM_TYPE& GetDefaultScout() const;
+    const typename CC::ATOM_TYPE& GetDefaultColonist() const;
+    const typename CC::ATOM_TYPE& GetDefaultSoldier() const;
 
     virtual const char* GetDescription() const
     {

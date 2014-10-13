@@ -1,6 +1,8 @@
 /* -*- C++ -*- */
 
 #include "Abstract_Element_Scout.h"
+#include "Abstract_Element_Colonist.h"
+#include "Abstract_Element_Soldier.h"
 
 namespace MFM
 {
@@ -19,12 +21,12 @@ namespace MFM
 
     if(rand.OneIn(m_soldierSpawnChance.GetValue()))
     {
-
+      PlaceAtomRandomly(window, GetDefaultSoldier());
     }
 
     if(rand.OneIn(m_colonistSpawnChance.GetValue()))
     {
-
+      PlaceAtomRandomly(window, GetDefaultColonist());
     }
 
     if(rand.OneIn(m_scoutSpawnChance.GetValue()))

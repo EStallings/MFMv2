@@ -100,6 +100,8 @@ namespace MFM
     virtual void Behavior(EventWindow<CC>& window) const;
 
     virtual const typename CC::ATOM_TYPE& GetDefaultScout() const = 0;
+    virtual const typename CC::ATOM_TYPE& GetDefaultSoldier() const = 0;
+    virtual const typename CC::ATOM_TYPE& GetDefaultColonist() const = 0;
 
    private:
     void PlaceAtomRandomly(EventWindow<CC>& window, const T& atom) const
