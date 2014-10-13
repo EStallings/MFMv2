@@ -110,18 +110,6 @@ namespace MFM
     virtual const Element<CC>* GetColonistElement()   const = 0;
     virtual const Element<CC>* GetBreadcrumbElement() const = 0;
 
-    virtual const bool IsMyBreadcrumbType(const u32 type) const = 0;
-
-    
-    virtual const bool IsMyBreadcrumbAlerted(const T& bc) const
-    {
-      return Abstract_Element_Breadcrumb<CC>::THE_INSTANCE.IsAlert(bc);
-    }
-
-    virtual const bool IsMyBreadcrumbIndexHigher(const T& bc, int curIndex) const
-    {
-      return Abstract_Element_Breadcrumb<CC>::THE_INSTANCE.GetIndex(bc) > curIndex;
-    }
 
     virtual void Behavior(EventWindow<CC>& window) const
     {
@@ -134,57 +122,6 @@ namespace MFM
         window.SetCenterAtom(Element_Empty<CC>::THE_INSTANCE.GetDefaultAtom());
         return;
       }
-
-      //Look through event window, and:
-      // count enemy atoms nearby, and select a random one if applicable
-      // count nearby breadcrumbs, and select the highest-indexed one if applicable
-      // count nearby empty spaces, and select the one nearest a high-indexed breadcrumb
-      
-      SPoint emptyLocation, enemyLocation, breadcrumbLocation;
-      u32 enemyCount, curIndex = -1;
-      enemyCount = 0;
-      u32 minDist = R;
-      MDist<R> n = MDist<R>::get();
-
-      for(u32 i = n.GetFirstIndex(1); i <= n.GetLastIndex(R); i++)
-      {
-        SPoint searchLoc = n.GetPoint(i);
-        
-        //Enemy identification TODO
-
-
-        //if( (dynamic_cast<const AbstractElement_ForkBomb<CC>*>(elt)) )
-        //This is some code from antiforkbomb showing how to use dynamic cast for instanceof
-
-
-        //Breadcrumb identification TODO
-        if( IsMyBreadcrumbType( window.GetRelativeAtom(searchLoc).GetType() ) )
-        {
-          if(IsMyBreadcrumbAlerted(window.GetRelativeAtom(searchLoc)))
-          {
-            if(IsMyBreadcrumbIndexHigher(window.GetRelativeAtom(searchLoc), curIndex))
-            {
-              breadcrumbLocation = searchLoc;
-            }
-          }
-        }
-      }
-
-      //Find the nearest empty spot
-      for(u32 i = n.GetFirstIndex(1); i <= n.GetLastIndex(R); i++)
-      {
-        SPoint searchLoc = n.GetPoint(i)+breadcrumbLocation;
-        
-        if(window.GetRelativeAtom(searchLoc).GetType() == Element_Empty<CC>::THE_INSTANCE.GetType())
-        {
-          if(searchLoc.GetManhattanLength <= R)
-          {
-            window.SwapAtoms(SPoint(0,0), searchLoc);
-            return;
-          }
-        } 
-      }
-      
     }
   };
 }

@@ -84,8 +84,6 @@ namespace MFM
     const Element<CC>* GetColonistElement()   const;
     const Element<CC>* GetBreadcrumbElement() const;
 
-    const bool IsMyBreadcrumbType(const u32 type) const;
-
     virtual const char* GetDescription() const
     {
       return "Red Soldier element.";

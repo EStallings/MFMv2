@@ -27,12 +27,5 @@
 	    {
 	    	return &(Element_Breadcrumb_Red<CC>::THE_INSTANCE);
 	    }
-		
-	    template <class CC>
-		const bool Element_Soldier_Red<CC>::IsMyBreadcrumbType(const u32 type) const
-		{
-			return type == Element_Breadcrumb_Red<CC>::THE_INSTANCE.GetType();
-		}
-
 	}
     
