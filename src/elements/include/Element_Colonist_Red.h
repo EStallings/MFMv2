@@ -34,7 +34,6 @@
 #include "itype.h"
 #include "P3Atom.h"
 #include "Abstract_Element_Colonist.h"
-#include "Element_Tower_Red.h"
 
 namespace MFM
 {
@@ -81,15 +80,12 @@ namespace MFM
 	     SetCurrentDirection(defaultAtom, rand() % Dirs::DIR_COUNT);
 
       Abstract_Element_Colonist<CC>::
-       SetTowerChance(defaultAtom, (u32) Abstract_Element_Colonist<CC>::m_defaultTowerChance.GetValue());
+       SetTowerChance(defaultAtom, (u32) Abstract_Element_Colonist<CC>::m_towerChance.GetValue());
 
       return defaultAtom;
     }
 
-    virtual const Abstract_Element_Tower<CC>& GetTowerElement() const
-    {
-      return Element_Tower_Red<CC>::THE_INSTANCE;
-    }
+    const T& GetDefaultTower() const;
 
     virtual const char* GetDescription() const
     {
@@ -101,5 +97,7 @@ namespace MFM
   Element_Colonist_Red<CC> Element_Colonist_Red<CC>::THE_INSTANCE;
 
 }
+
+#include "Element_Colonist_Red.tcc"
 
 #endif /* ELEMENT_COLONIST_RED_H */

@@ -34,7 +34,6 @@
 #include "itype.h"
 #include "P3Atom.h"
 #include "Abstract_Element_Soldier.h"
-#include "Element_Tower_Red.h"
 
 namespace MFM
 {
@@ -75,15 +74,17 @@ namespace MFM
       static T defaultAtom(TYPE(),0,0,0);
 
       Abstract_Element_Soldier<CC>::
-	SetCurrentHealth(defaultAtom, (u32) Abstract_Element_Soldier<CC>::m_defaultHealth.GetValue());
+	    SetCurrentHealth(defaultAtom, (u32) Abstract_Element_Soldier<CC>::m_defaultHealth.GetValue());
 
       return defaultAtom;
     }
 
-    virtual const Abstract_Element_Tower<CC>& GetTowerElement() const
-    {
-      return Element_Tower_Red<CC>::THE_INSTANCE;
-    }
+    const Element<CC>* GetScoutElement()      const;
+    const Element<CC>* GetTowerElement()      const;
+    const Element<CC>* GetColonistElement()   const;
+    const Element<CC>* GetBreadcrumbElement() const;
+
+    const bool IsMyBreadcrumbType(const u32 type) const;
 
     virtual const char* GetDescription() const
     {
@@ -95,5 +96,8 @@ namespace MFM
   Element_Soldier_Red<CC> Element_Soldier_Red<CC>::THE_INSTANCE;
 
 }
+
+
+#include "Element_Soldier_Red.tcc"
 
 #endif /* ELEMENT_SOLDIER_RED_H */

@@ -124,10 +124,7 @@ namespace MFM
 
     virtual u32 GetMyBreadcrumbType() const = 0;
 
-    bool IsAlert(const T& us) const
-    {
-      return GetAlertTimer(us) > 0;
-    }
+    
 
     public:
     Abstract_Element_Breadcrumb(const UUID & uuid) :
@@ -140,6 +137,12 @@ namespace MFM
         1, 100, 255, 1)
     { }
 
+
+    bool IsAlert(const T& us) const
+    {
+      return GetAlertTimer(us) > 0;
+    }
+    
     void Alert(T& us) const
     {
       SetAlertTimer(us, m_alertLength.GetValue());
@@ -203,7 +206,7 @@ namespace MFM
     virtual void Behavior(EventWindow<CC>& window) const
     {
       const T& me = window.GetCenterAtom();
-      LOG.Debug("Examining BC:%d; Pred=%d, Succ=%d", GetIndex(me), GetPrevIndex(me), GetNextIndex(me));
+      //LOG.Debug("Examining BC:%d; Pred=%d, Succ=%d", GetIndex(me), GetPrevIndex(me), GetNextIndex(me));
       if(IsCooldown(me))
       {
         //window.SetCenterAtom(Element_Empty<CC>::THE_INSTANCE.GetDefaultAtom());
@@ -244,29 +247,19 @@ namespace MFM
           }
         }
 
-        //if no neighbors, alert
-        if(!fP || !fS){
+        //Become alert if neighbor is alert
+        if((fP && IsAlert(window.GetRelativeAtom(pred))) || (fS && IsAlert(window.GetRelativeAtom(succ))))
+        {
           T mutableMe = GetMutableAtom(window.GetCenterAtom());
           Alert(mutableMe);
           window.SetCenterAtom(mutableMe);
           return;
         }
-
-        //Become alert if neighbor is alert
-        if((fP && IsAlert(window.GetRelativeAtom(pred))) || (fS && IsAlert(window.GetRelativeAtom(succ))))
-        {
-          //T mutableMe = GetMutableAtom(window.GetCenterAtom());
-          //Alert(mutableMe);
-          //window.SetCenterAtom(mutableMe);
-          //return;
-        }
-        LOG.Debug("Examining BC:%d; Pred=%d, Succ=%d", GetIndex(me), GetPrevIndex(me), GetNextIndex(me));
-
         //Move to average position
         if(fP && fS){
           if((pred-succ).GetManhattanLength() <= R){
 
-            LOG.Debug("Deleting BC:%d; Pred=%d, Succ=%d", GetIndex(me), GetPrevIndex(me), GetNextIndex(me));
+            //LOG.Debug("Deleting BC:%d; Pred=%d, Succ=%d", GetIndex(me), GetPrevIndex(me), GetNextIndex(me));
 
             T predAtom = GetMutableAtom(window.GetRelativeAtom(pred));
             SetNextIndex(predAtom, GetNextIndex(me));

@@ -34,7 +34,6 @@
 #include "itype.h"
 #include "P3Atom.h"
 #include "Element_Empty.h"
-#include "Abstract_Element_Tower.h"
 
 namespace MFM
 {
@@ -138,7 +137,7 @@ namespace MFM
       return newMe;
     }
 
-    virtual const Abstract_Element_Tower<CC>& GetTowerElement() const = 0;
+    virtual const T& GetDefaultTower() const = 0;
 
     virtual void Behavior(EventWindow<CC>& window) const
     {
@@ -158,8 +157,7 @@ namespace MFM
       //Possibly turn into tower
       if(rand.OneIn(GetTowerChance(self)))
       {
-        const Abstract_Element_Tower<CC>& twClass = GetTowerElement();
-        window.SetCenterAtom(twClass.GetDefaultAtom());
+        window.SetCenterAtom(GetDefaultTower());
         return;
       }
 

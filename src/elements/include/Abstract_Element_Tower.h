@@ -111,13 +111,13 @@ namespace MFM
         MDist<R> n = MDist<R>::get();
 
         for(u32 i = n.GetFirstIndex(1); i <= n.GetLastIndex(R); i++)
-	{
+	      {
           SPoint searchLoc = n.GetPoint(i);
           if(window.GetRelativeAtom(searchLoc).GetType() == Element_Empty<CC>::THE_INSTANCE.GetType())
-	  {
+	        {
             emptyCount++;
             if(window.GetRandom().OneIn(emptyCount))
-	    {
+	          {
               location = searchLoc;
             }
           }

@@ -37,6 +37,7 @@
 #include "Abstract_Element_Tower.h"
 #include "Abstract_Element_Scout.h"
 #include "Abstract_Element_Colonist.h"
+#include "Abstract_Element_Breadcrumb.h"
 
 namespace MFM
 {
@@ -100,22 +101,33 @@ namespace MFM
       T newMe(me.GetType(), 0, 0, 0);
 
       SetCurrentHealth(newMe, GetCurrentHealth(me));
-      SetCurrentDirection(newMe, GetCurrentDirection(me));
-      SetTowerChance(newMe, GetTowerChance(me));
 
       return newMe;
     }
 
-    virtual const Abstract_Element_Tower<CC>& GetScoutElement()      const = 0;
-    virtual const Abstract_Element_Tower<CC>& GetTowerElement()      const = 0;
-    virtual const Abstract_Element_Tower<CC>& GetColonistElement()   const = 0;
-    virtual const Abstract_Element_Tower<CC>& GetBreadcrumbElement() const = 0;
+    virtual const Element<CC>* GetScoutElement()      const = 0;
+    virtual const Element<CC>* GetTowerElement()      const = 0;
+    virtual const Element<CC>* GetColonistElement()   const = 0;
+    virtual const Element<CC>* GetBreadcrumbElement() const = 0;
+
+    virtual const bool IsMyBreadcrumbType(const u32 type) const = 0;
+
+    
+    virtual const bool IsMyBreadcrumbAlerted(const T& bc) const
+    {
+      return Abstract_Element_Breadcrumb<CC>::THE_INSTANCE.IsAlert(bc);
+    }
+
+    virtual const bool IsMyBreadcrumbIndexHigher(const T& bc, int curIndex) const
+    {
+      return Abstract_Element_Breadcrumb<CC>::THE_INSTANCE.GetIndex(bc) > curIndex;
+    }
 
     virtual void Behavior(EventWindow<CC>& window) const
     {
       const T& constSelf = window.GetCenterAtom();
       T self = GetMutableMe(constSelf);
-      Random& rand = window.GetRandom();
+      //Random& rand = window.GetRandom();
 
       //If out of health, die
       if(GetCurrentHealth(self) <= 0){
@@ -129,8 +141,9 @@ namespace MFM
       // count nearby empty spaces, and select the one nearest a high-indexed breadcrumb
       
       SPoint emptyLocation, enemyLocation, breadcrumbLocation;
-      u32 emptyCount, enemyCount, breadcrumbCount;
-      emptyCount = enemyCount = breadcrumbCount = 0;
+      u32 enemyCount, curIndex = -1;
+      enemyCount = 0;
+      u32 minDist = R;
       MDist<R> n = MDist<R>::get();
 
       for(u32 i = n.GetFirstIndex(1); i <= n.GetLastIndex(R); i++)
@@ -139,21 +152,42 @@ namespace MFM
         
         //Enemy identification TODO
 
-        //Breadcrumb identification TODO
 
-        //Empty space identification
-        if(window.GetRelativeAtom(searchLoc).GetType() == Element_Empty<CC>::THE_INSTANCE.GetType())
+        //if( (dynamic_cast<const AbstractElement_ForkBomb<CC>*>(elt)) )
+        //This is some code from antiforkbomb showing how to use dynamic cast for instanceof
+
+
+        //Breadcrumb identification TODO
+        if( IsMyBreadcrumbType( window.GetRelativeAtom(searchLoc).GetType() ) )
         {
-          emptyCount++;
-          if(window.GetRandom().OneIn(emptyCount))
+          if(IsMyBreadcrumbAlerted(window.GetRelativeAtom(searchLoc)))
           {
-            emptyLocation = searchLoc;
+            if(IsMyBreadcrumbIndexHigher(window.GetRelativeAtom(searchLoc), curIndex))
+            {
+              breadcrumbLocation = searchLoc;
+            }
           }
         }
+      }
+
+      //Find the nearest empty spot
+      for(u32 i = n.GetFirstIndex(1); i <= n.GetLastIndex(R); i++)
+      {
+        SPoint searchLoc = n.GetPoint(i)+breadcrumbLocation;
+        
+        if(window.GetRelativeAtom(searchLoc).GetType() == Element_Empty<CC>::THE_INSTANCE.GetType())
+        {
+          if(searchLoc.GetManhattanLength <= R)
+          {
+            window.SwapAtoms(SPoint(0,0), searchLoc);
+            return;
+          }
+        } 
       }
       
     }
   };
 }
+
 
 #endif /* ABSTRACT_ELEMENT_SOLDIER_H */
