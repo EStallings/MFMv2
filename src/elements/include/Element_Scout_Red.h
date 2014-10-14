@@ -88,6 +88,8 @@ namespace MFM
       return Element_Breadcrumb_Red<CC>::THE_INSTANCE;
     }
 
+    virtual const bool IsAtomEnemy(const T& atom) const;
+
     virtual const char* GetDescription() const
     {
       return "Red Scout element.";
@@ -98,5 +100,7 @@ namespace MFM
   Element_Scout_Red<CC> Element_Scout_Red<CC>::THE_INSTANCE;
 
 }
+
+#include "Element_Scout_Red.tcc"
 
 #endif /* ELEMENT_SCOUT_RED_H */

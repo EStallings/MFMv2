@@ -137,6 +137,7 @@ namespace MFM
     }
 
     virtual const Abstract_Element_Breadcrumb<CC>& GetBreadcrumbElement() const = 0;
+    virtual const bool IsAtomEnemy(const T& atom) const = 0;
 
     virtual void Behavior(EventWindow<CC>& window) const
     {
@@ -166,10 +167,12 @@ namespace MFM
           return;
         }
       }
+
       //Randomly change direction & stutter movement
       if(rand.OneIn(m_changeDirectionChance.GetValue())){
         SetCurrentDirection(self, rand.Create(8));
       }
+
       Dir curDirection = (Dir)GetCurrentDirection(self);
       
       if(rand.OneIn(m_stutterChance.GetValue())){
@@ -180,7 +183,7 @@ namespace MFM
       window.SetCenterAtom(self);
       SPoint vec;
       Dirs::FillDir(vec, curDirection);
-      u32 speed = Dirs::IsCorner(curDirection) ? 2 : 4;
+      u32 speed = Dirs::IsCorner(curDirection) ? 1 : 2;
       
       for(u32 it = 0; it < 2; it++){
         vec *= (speed-it);
@@ -195,6 +198,7 @@ namespace MFM
           bcClass.SetPrevIndex(bc, GetCurrentBreadcrumbIndex(self)-1);
           bcClass.SetNextIndex(bc, GetCurrentBreadcrumbIndex(self)+1);
         	SetCurrentBreadcrumbIndex(self, GetCurrentBreadcrumbIndex(self) + 1);
+          bcClass.Cooldown(bc);
         	window.SetCenterAtom(self);
 
         	window.SetRelativeAtom(vec, bc);

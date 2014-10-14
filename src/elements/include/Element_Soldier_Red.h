@@ -85,6 +85,8 @@ namespace MFM
     const Element<CC>* GetBreadcrumbElement() const;
 
     const bool IsMyBreadcrumbType(const u32 type) const;
+    const bool IsMyBreadcrumbAlerted(const T& bc) const;
+    const u32 GetMyBreadcrumbIndex(const T& bc) const;
 
     virtual const char* GetDescription() const
     {

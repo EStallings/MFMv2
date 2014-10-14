@@ -34,5 +34,17 @@
 			return type == Element_Breadcrumb_Red<CC>::THE_INSTANCE.GetType();
 		}
 
+		template <class CC>
+		const bool Element_Soldier_Red<CC>::IsMyBreadcrumbAlerted(const T& bc) const
+	    {
+	      	return Element_Breadcrumb_Red<CC>::THE_INSTANCE.IsAlert(bc);
+	    }
+
+	    template <class CC>
+	    const u32 Element_Soldier_Red<CC>::GetMyBreadcrumbIndex(const T& bc) const
+	    {
+	      	return Element_Breadcrumb_Red<CC>::THE_INSTANCE.GetIndex(bc);
+	    }
+
 	}
     

@@ -111,17 +111,8 @@ namespace MFM
     virtual const Element<CC>* GetBreadcrumbElement() const = 0;
 
     virtual const bool IsMyBreadcrumbType(const u32 type) const = 0;
-
-    
-    virtual const bool IsMyBreadcrumbAlerted(const T& bc) const
-    {
-      return Abstract_Element_Breadcrumb<CC>::THE_INSTANCE.IsAlert(bc);
-    }
-
-    virtual const bool IsMyBreadcrumbIndexHigher(const T& bc, int curIndex) const
-    {
-      return Abstract_Element_Breadcrumb<CC>::THE_INSTANCE.GetIndex(bc) > curIndex;
-    }
+    virtual const bool IsMyBreadcrumbAlerted(const T& bc) const = 0;
+    virtual const u32 GetMyBreadcrumbIndex(const T& bc) const = 0;
 
     virtual void Behavior(EventWindow<CC>& window) const
     {
@@ -140,16 +131,15 @@ namespace MFM
       // count nearby breadcrumbs, and select the highest-indexed one if applicable
       // count nearby empty spaces, and select the one nearest a high-indexed breadcrumb
       
-      SPoint emptyLocation, enemyLocation, breadcrumbLocation;
-      u32 enemyCount, curIndex = -1;
-      enemyCount = 0;
-      u32 minDist = R;
+      SPoint emptyLocation, breadcrumbLocation;
+      u32 curIndex = 0;
+      bool foundBreadcrumb = false;
+      // u32 enemyCount = 0;
       MDist<R> n = MDist<R>::get();
 
       for(u32 i = n.GetFirstIndex(1); i <= n.GetLastIndex(R); i++)
       {
-        SPoint searchLoc = n.GetPoint(i);
-        
+        SPoint searchLoc = n.GetPoint(i);         
         //Enemy identification TODO
 
 
@@ -160,31 +150,40 @@ namespace MFM
         //Breadcrumb identification TODO
         if( IsMyBreadcrumbType( window.GetRelativeAtom(searchLoc).GetType() ) )
         {
+          //LOG.Debug("Found Breadcrumb");
           if(IsMyBreadcrumbAlerted(window.GetRelativeAtom(searchLoc)))
           {
-            if(IsMyBreadcrumbIndexHigher(window.GetRelativeAtom(searchLoc), curIndex))
+
+            u32 testIndex = GetMyBreadcrumbIndex(window.GetRelativeAtom(searchLoc));
+            //LOG.Debug("And its alerted! index=%d", testIndex);
+            if(testIndex >= curIndex)
             {
+              //LOG.Debug("And we should be going towards it!");
               breadcrumbLocation = searchLoc;
+              curIndex = testIndex;
+              foundBreadcrumb = true;
             }
           }
         }
       }
+      //LOG.Debug("CurIndex: %d", curIndex);
 
       //Find the nearest empty spot
-      for(u32 i = n.GetFirstIndex(1); i <= n.GetLastIndex(R); i++)
-      {
-        SPoint searchLoc = n.GetPoint(i)+breadcrumbLocation;
-        
-        if(window.GetRelativeAtom(searchLoc).GetType() == Element_Empty<CC>::THE_INSTANCE.GetType())
+      if(foundBreadcrumb){
+        for(u32 i = n.GetFirstIndex(1); i <= n.GetLastIndex(R); i++)
         {
-          if(searchLoc.GetManhattanLength <= R)
+          SPoint searchLoc = n.GetPoint(i)+breadcrumbLocation;
+          
+          if(window.GetRelativeAtom(searchLoc).GetType() == Element_Empty<CC>::THE_INSTANCE.GetType())
           {
-            window.SwapAtoms(SPoint(0,0), searchLoc);
-            return;
-          }
-        } 
+            if(searchLoc.GetManhattanLength() < R)
+            {
+              window.SwapAtoms(SPoint(0,0), searchLoc);
+              return;
+            }
+          } 
+        }
       }
-      
     }
   };
 }

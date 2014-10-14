@@ -87,6 +87,7 @@ namespace MFM
       	m_stutterChance(this, "stutterChance", "Stutter Movement Chance",
       			    "This is the chance of stuttering movement.", 1, 50, 100,1),
         m_towerChance(this, "towerChance", "Tower Placement Chance",
+
                 "This is the chance of making a tower, decreases over time.", 50,1000,200,10)
     {}
 

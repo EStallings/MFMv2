@@ -53,19 +53,19 @@ namespace MFM
       // Element state fields
 
       INDEX_POS = P3Atom<P>::P3_STATE_BITS_POS,
-      INDEX_LEN = 8,
+      INDEX_LEN = 10,
 
       PREV_INDEX_POS = INDEX_POS + INDEX_LEN,
-      PREV_INDEX_LEN = 8,
+      PREV_INDEX_LEN = 10,
 
       NEXT_INDEX_POS = PREV_INDEX_POS + PREV_INDEX_LEN,
-      NEXT_INDEX_LEN = 8,
+      NEXT_INDEX_LEN = 10,
 
       ALERT_TIMER_POS = NEXT_INDEX_POS + NEXT_INDEX_LEN,
-      ALERT_TIMER_LEN = 8,
+      ALERT_TIMER_LEN = 1,
 
       COOLDOWN_TIMER_POS = ALERT_TIMER_POS + ALERT_TIMER_LEN,
-      COOLDOWN_TIMER_LEN = 8
+      COOLDOWN_TIMER_LEN = 9
     };
 
    protected:
@@ -79,25 +79,14 @@ namespace MFM
     ElementParameterS32<CC> m_alertLength;
     ElementParameterS32<CC> m_cooldownLength;
 
-    u32 GetAlertTimer(const T& us) const
+    u32 GetAlert(const T& us) const
     {
       return AFAlertTimer::Read(this->GetBits(us));
     }
 
-    void SetAlertTimer(T& us, const u32 age) const
+    void SetAlert(T& us, const u32 age) const
     {
       AFAlertTimer::Write(this->GetBits(us), age);
-    }
-
-
-    void DecrementAlert(T& us) const
-    {
-      SetAlertTimer(us, GetAlertTimer(us) - 1);
-
-      if(!IsAlert(us))
-      {
-        Cooldown(us);
-      }
     }
 
     u32 GetCooldownTimer(const T& us) const
@@ -140,17 +129,17 @@ namespace MFM
 
     bool IsAlert(const T& us) const
     {
-      return GetAlertTimer(us) > 0;
+      return GetAlert(us) > 0;
     }
     
     void Alert(T& us) const
     {
-      SetAlertTimer(us, m_alertLength.GetValue());
+      SetAlert(us, 1);
     }
     
     void Cooldown(T& us) const
     {
-      SetCooldownTimer(us, m_cooldownLength.GetValue());
+      SetCooldownTimer(us, (1 << COOLDOWN_TIMER_LEN) - 1);
     }
 
 
@@ -187,13 +176,6 @@ namespace MFM
     T GetMutableAtom(const T& oldMe) const
     {
       T me = oldMe;
-      // T me(oldMe.GetType(), 0, 0, 0);
-
-      // SetCooldownTimer(me, GetCooldownTimer(oldMe));
-      // SetAlertTimer(me, GetAlertTimer(oldMe));
-      // SetIndex(me, GetIndex(oldMe));
-      // SetPrevIndex(me, GetPrevIndex(oldMe));
-      // SetNextIndex(me, GetNextIndex(oldMe));
 
       return me;
     }
@@ -206,19 +188,15 @@ namespace MFM
     virtual void Behavior(EventWindow<CC>& window) const
     {
       const T& me = window.GetCenterAtom();
-      //LOG.Debug("Examining BC:%d; Pred=%d, Succ=%d", GetIndex(me), GetPrevIndex(me), GetNextIndex(me));
-      if(IsCooldown(me))
+      //LOG.Debug("Examining BC:%d; Pred=%d, Succ=%d, timer=%d", GetIndex(me), GetPrevIndex(me), GetNextIndex(me), GetCooldownTimer(me));
+
+      T mutableMe = GetMutableAtom(window.GetCenterAtom());
+      DecrementCooldown(mutableMe);
+      window.SetCenterAtom(mutableMe);
+
+      if(!IsCooldown(me))
       {
-        //window.SetCenterAtom(Element_Empty<CC>::THE_INSTANCE.GetDefaultAtom());
-        T mutableMe = GetMutableAtom(window.GetCenterAtom());
-        DecrementCooldown(mutableMe);
-        window.SetCenterAtom(mutableMe);
-      }
-      else if(IsAlert(me))
-      {
-        T mutableMe = GetMutableAtom(window.GetCenterAtom());
-        DecrementAlert(mutableMe);
-        window.SetCenterAtom(mutableMe);
+        window.SetCenterAtom(Element_Empty<CC>::THE_INSTANCE.GetDefaultAtom());
       }
       else
       {
@@ -248,16 +226,15 @@ namespace MFM
         }
 
         //Become alert if neighbor is alert
-        if((fP && IsAlert(window.GetRelativeAtom(pred))) || (fS && IsAlert(window.GetRelativeAtom(succ))))
+        if((!IsAlert(me)) && ((fP && IsAlert(window.GetRelativeAtom(pred))) || (fS && IsAlert(window.GetRelativeAtom(succ)))))
         {
           T mutableMe = GetMutableAtom(window.GetCenterAtom());
           Alert(mutableMe);
           window.SetCenterAtom(mutableMe);
-          return;
         }
         //Move to average position
         if(fP && fS){
-          if((pred-succ).GetManhattanLength() <= R){
+          if((pred-succ).GetManhattanLength() < R){
 
             //LOG.Debug("Deleting BC:%d; Pred=%d, Succ=%d", GetIndex(me), GetPrevIndex(me), GetNextIndex(me));
 
