@@ -110,6 +110,9 @@ namespace MFM
     virtual const Element<CC>* GetColonistElement()   const = 0;
     virtual const Element<CC>* GetBreadcrumbElement() const = 0;
 
+    //Returns true if the attack was successful
+    virtual const bool AttemptAttack(EventWindow<CC>& window, SPoint location) const = 0;
+
     virtual const bool IsMyBreadcrumbType(const u32 type) const = 0;
     virtual const bool IsMyBreadcrumbAlerted(const T& bc) const = 0;
     virtual const u32 GetMyBreadcrumbIndex(const T& bc) const = 0;
@@ -142,9 +145,9 @@ namespace MFM
         SPoint searchLoc = n.GetPoint(i);         
         //Enemy identification TODO
 
-
-        //if( (dynamic_cast<const AbstractElement_ForkBomb<CC>*>(elt)) )
-        //This is some code from antiforkbomb showing how to use dynamic cast for instanceof
+        if(AttemptAttack(window, searchLoc)){
+          return;
+        }
 
 
         //Breadcrumb identification TODO

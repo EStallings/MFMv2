@@ -84,6 +84,9 @@ namespace MFM
     const Element<CC>* GetColonistElement()   const;
     const Element<CC>* GetBreadcrumbElement() const;
 
+    const bool AttemptAttack(EventWindow<CC>& window, SPoint location) const;
+
+
     const bool IsMyBreadcrumbType(const u32 type) const;
     const bool IsMyBreadcrumbAlerted(const T& bc) const;
     const u32 GetMyBreadcrumbIndex(const T& bc) const;

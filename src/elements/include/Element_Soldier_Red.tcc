@@ -46,5 +46,10 @@
 	      	return Element_Breadcrumb_Red<CC>::THE_INSTANCE.GetIndex(bc);
 	    }
 
+
+	    
+        //if( (dynamic_cast<const AbstractElement_ForkBomb<CC>*>(elt)) )
+        //This is some code from antiforkbomb showing how to use dynamic cast for instanceof
+
 	}
     
