@@ -14,5 +14,9 @@
 #include "Element_Scout_Red.h"
 #include "Element_Colonist_Red.h"
 #include "Element_Soldier_Red.h"
+#include "Element_Tower_Blue.h"
+#include "Element_Scout_Blue.h"
+#include "Element_Colonist_Blue.h"
+#include "Element_Soldier_Blue.h"
 
 #endif /* MAIN_H */

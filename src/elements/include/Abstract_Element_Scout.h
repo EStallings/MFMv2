@@ -54,6 +54,7 @@ namespace MFM
     ElementParameterS32<CC> m_defaultHealth;
     ElementParameterS32<CC> m_changeDirectionChance;
     ElementParameterS32<CC> m_stutterChance;
+    ElementParameterS32<CC> m_defaultLifeTimer;
 
     enum
     {
@@ -69,13 +70,17 @@ namespace MFM
       CURRENT_DIRECTION_LEN = 3,
 
       CURRENT_BREADCRUMB_INDEX_POS = CURRENT_DIRECTION_POS + CURRENT_DIRECTION_LEN,
-      CURRENT_BREADCRUMB_INDEX_LEN = 8
+      CURRENT_BREADCRUMB_INDEX_LEN = 8,
+
+      CURRENT_LIFE_TIMER_POS = CURRENT_BREADCRUMB_INDEX_POS + CURRENT_BREADCRUMB_INDEX_LEN,
+      CURRENT_LIFE_TIMER_LEN = 10
     };
 
     typedef BitField<BitVector<BITS>, CURRENT_HEALTH_LEN, CURRENT_HEALTH_POS> AFCurrentHealth;
     typedef BitField<BitVector<BITS>, CURRENT_DIRECTION_LEN, CURRENT_DIRECTION_POS> AFCurrentDirection;
     typedef BitField<BitVector<BITS>, CURRENT_BREADCRUMB_INDEX_LEN, CURRENT_BREADCRUMB_INDEX_POS>
             AFCurrentBreadcrumbIndex;
+    typedef BitField<BitVector<BITS>, CURRENT_LIFE_TIMER_LEN, CURRENT_LIFE_TIMER_POS> AFCurrentLifeTimer;
 
   public:
 
@@ -86,8 +91,20 @@ namespace MFM
         m_changeDirectionChance(this, "changeDirectionChance", "Change Direction Chance",
 		  "This is the chance of changing direction in a given tick.", 1, 20, 100, 1),
 	m_stutterChance(this, "stutterChance", "Stutter Movement Chance",
-			"This is the chance of stuttering movement.", 1, 10, 100,1)
+			"This is the chance of stuttering movement.", 1, 10, 100,1),
+  m_defaultLifeTimer(this, "defaultLifeTimer", "Default Life Timer",
+                "This is the natural lifespan of the scout.", 1, 350, 1000, 10)
     {}
+
+    u32 GetCurrentLifeTimer(const T& us) const
+    {
+      return AFCurrentLifeTimer::Read(this->GetBits(us));
+    }
+
+    void SetCurrentLifeTimer(T& us, const u32 time) const
+    {
+      AFCurrentLifeTimer::Write(this->GetBits(us), time);
+    }
 
     u32 GetCurrentHealth(const T& us) const
     {
@@ -125,31 +142,31 @@ namespace MFM
       return 100;
     }
 
-    T GetMutableMe(const T& me) const
+    T GetMutableAtom(const T& oldMe) const
     {
-      T newMe(me.GetType(), 0, 0, 0);
+      T me = oldMe;
 
-      SetCurrentHealth(newMe, GetCurrentHealth(me));
-      SetCurrentDirection(newMe, GetCurrentDirection(me));
-      SetCurrentBreadcrumbIndex(newMe, GetCurrentBreadcrumbIndex(me));
-
-      return newMe;
+      return me;
     }
 
     virtual const Abstract_Element_Breadcrumb<CC>& GetBreadcrumbElement() const = 0;
-    virtual const bool IsAtomEnemy(const T& atom) const = 0;
+    virtual const bool IsAtomEnemy(EventWindow<CC>& window, const T& atom) const = 0;
 
     virtual void Behavior(EventWindow<CC>& window) const
     {
       const T& constSelf = window.GetCenterAtom();
-      T self = GetMutableMe(constSelf);
+      T self = GetMutableAtom(constSelf);
       Random& rand = window.GetRandom();
 
-      //If out of health, die
-      if(GetCurrentHealth(self) <= 0){
+      //Reduce life timer
+      SetCurrentLifeTimer(self, GetCurrentLifeTimer(self)-1);
+
+      //If out of health, or at the end of natural lifespan, die
+      if(GetCurrentHealth(self) <= 0 || GetCurrentLifeTimer(self) <= 0){
         window.SetCenterAtom(Element_Empty<CC>::THE_INSTANCE.GetDefaultAtom());
         return;
       }
+      window.SetCenterAtom(self);
 
       //Scan event window for enemies; if one spotted, replace self with alerted breadcrumb
       MDist<R>& md = MDist<R>::get();
@@ -157,7 +174,7 @@ namespace MFM
       {
         SPoint pt = md.GetPoint(i);
         
-        if(window.GetRelativeAtom(pt).GetType() == Element_Data<CC>::THE_INSTANCE.GetType())
+        if(IsAtomEnemy(window, window.GetRelativeAtom(pt)))
         {
           const Abstract_Element_Breadcrumb<CC>& bcClass = GetBreadcrumbElement();
           T bc = bcClass.GetMutableAtom(bcClass.GetDefaultAtom());

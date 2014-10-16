@@ -46,10 +46,67 @@
 	      	return Element_Breadcrumb_Red<CC>::THE_INSTANCE.GetIndex(bc);
 	    }
 
+	    template<class CC>
+	    const bool Element_Soldier_Red<CC>::AttemptAttack(EventWindow<CC>& window, SPoint location) const
+	    {
+	    	const T& atom = window.GetRelativeAtom(location);
+	    	const u32 type = atom.GetType();
+	    	const Element<CC> * elt = window.GetTile().GetElement(type);
+	    	u32 damage = Element_Soldier_Red<CC>::m_attackDamage.GetValue();
 
-	    
-        //if( (dynamic_cast<const AbstractElement_ForkBomb<CC>*>(elt)) )
-        //This is some code from antiforkbomb showing how to use dynamic cast for instanceof
+	    	//check against tower
+	    	if( (dynamic_cast<const Abstract_Element_Tower<CC>*>(elt)) )
+	    	{
+	    		if(Element_Tower_Red<CC>::THE_INSTANCE.GetType() != type)
+	    		{
+	    			T tower = Element_Tower_Red<CC>::THE_INSTANCE.GetMutableAtom(atom);
+	    			Element_Tower_Red<CC>::THE_INSTANCE.SetCurrentHealth(tower, Element_Tower_Red<CC>::THE_INSTANCE.GetCurrentHealth(tower)-damage);
+	    			window.SetRelativeAtom(location, tower);
 
+	    			return true;
+	    		}
+	    	}
+
+	    	//check against colonist
+	    	if( (dynamic_cast<const Abstract_Element_Colonist<CC>*>(elt)) )
+	    	{
+	    		if(Element_Colonist_Red<CC>::THE_INSTANCE.GetType() != type)
+	    		{
+	    			T colonist = Element_Colonist_Red<CC>::THE_INSTANCE.GetMutableAtom(atom);
+	    			Element_Colonist_Red<CC>::THE_INSTANCE.SetCurrentHealth(colonist, Element_Colonist_Red<CC>::THE_INSTANCE.GetCurrentHealth(colonist)-damage);
+	    			window.SetRelativeAtom(location, colonist);
+
+	    			return true;
+	    		}
+	    	}
+
+	    	//check against soldier
+	    	if( (dynamic_cast<const Abstract_Element_Soldier<CC>*>(elt)) )
+	    	{
+	    		if(Element_Soldier_Red<CC>::THE_INSTANCE.GetType() != type)
+	    		{
+	    			T soldier = Element_Soldier_Red<CC>::THE_INSTANCE.GetMutableAtom(atom);
+	    			Element_Soldier_Red<CC>::THE_INSTANCE.SetCurrentHealth(soldier, Element_Soldier_Red<CC>::THE_INSTANCE.GetCurrentHealth(soldier)-damage);
+	    			window.SetRelativeAtom(location, soldier);
+
+	    			return true;
+	    		}
+	    	}
+
+	    	//check against scout
+	    	if( (dynamic_cast<const Abstract_Element_Scout<CC>*>(elt)) )
+	    	{
+	    		if(Element_Scout_Red<CC>::THE_INSTANCE.GetType() != type)
+	    		{
+	    			T scout = Element_Scout_Red<CC>::THE_INSTANCE.GetMutableAtom(atom);
+	    			Element_Scout_Red<CC>::THE_INSTANCE.SetCurrentHealth(scout, Element_Scout_Red<CC>::THE_INSTANCE.GetCurrentHealth(scout)-damage);
+	    			window.SetRelativeAtom(location, scout);
+
+	    			return true;
+	    		}
+	    	}
+
+	    	return false;
+	    }
 	}
     

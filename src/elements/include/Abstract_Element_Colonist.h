@@ -127,15 +127,11 @@ namespace MFM
       return 100;
     }
 
-    T GetMutableMe(const T& me) const
+    T GetMutableAtom(const T& oldMe) const
     {
-      T newMe(me.GetType(), 0, 0, 0);
+      T me = oldMe;
 
-      SetCurrentHealth(newMe, GetCurrentHealth(me));
-      SetCurrentDirection(newMe, GetCurrentDirection(me));
-      SetTowerChance(newMe, GetTowerChance(me));
-
-      return newMe;
+      return me;
     }
 
     virtual const T& GetDefaultTower() const = 0;
@@ -143,7 +139,7 @@ namespace MFM
     virtual void Behavior(EventWindow<CC>& window) const
     {
       const T& constSelf = window.GetCenterAtom();
-      T self = GetMutableMe(constSelf);
+      T self = GetMutableAtom(constSelf);
       Random& rand = window.GetRandom();
 
       //If out of health, die

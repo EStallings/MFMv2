@@ -75,10 +75,13 @@ namespace MFM
       static T defaultAtom(TYPE(),0,0,0);
 
       Abstract_Element_Scout<CC>::
-	SetCurrentHealth(defaultAtom, (u32) Abstract_Element_Scout<CC>::m_defaultHealth.GetValue());
+	    SetCurrentHealth(defaultAtom, (u32) Abstract_Element_Scout<CC>::m_defaultHealth.GetValue());
 
       Abstract_Element_Scout<CC>::
-	SetCurrentDirection(defaultAtom, rand() % Dirs::DIR_COUNT);
+      SetCurrentDirection(defaultAtom, rand() % Dirs::DIR_COUNT);
+
+      Abstract_Element_Scout<CC>::
+      SetCurrentLifeTimer(defaultAtom, (u32) Abstract_Element_Scout<CC>::m_defaultLifeTimer.GetValue());
 
       return defaultAtom;
     }
@@ -88,7 +91,7 @@ namespace MFM
       return Element_Breadcrumb_Red<CC>::THE_INSTANCE;
     }
 
-    virtual const bool IsAtomEnemy(const T& atom) const;
+    virtual const bool IsAtomEnemy(EventWindow<CC>& window, const T& atom) const;
 
     virtual const char* GetDescription() const
     {

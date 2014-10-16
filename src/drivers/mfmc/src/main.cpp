@@ -64,11 +64,18 @@ namespace MFM
       this->NeedElement(&Element_CheckerForkRed<CC>::THE_INSTANCE);
       this->NeedElement(&Element_Wanderer_Cyan<CC>::THE_INSTANCE);
       this->NeedElement(&Element_Wanderer_Magenta<CC>::THE_INSTANCE);
+
       this->NeedElement(&Element_Tower_Red<CC>::THE_INSTANCE);
       this->NeedElement(&Element_Colonist_Red<CC>::THE_INSTANCE);
       this->NeedElement(&Element_Scout_Red<CC>::THE_INSTANCE);
       this->NeedElement(&Element_Breadcrumb_Red<CC>::THE_INSTANCE);
       this->NeedElement(&Element_Soldier_Red<CC>::THE_INSTANCE);
+
+      this->NeedElement(&Element_Tower_Blue<CC>::THE_INSTANCE);
+      this->NeedElement(&Element_Colonist_Blue<CC>::THE_INSTANCE);
+      this->NeedElement(&Element_Scout_Blue<CC>::THE_INSTANCE);
+      this->NeedElement(&Element_Breadcrumb_Blue<CC>::THE_INSTANCE);
+      this->NeedElement(&Element_Soldier_Blue<CC>::THE_INSTANCE);
     }
 
   public:

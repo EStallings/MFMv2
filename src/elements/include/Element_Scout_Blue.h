@@ -1,8 +1,8 @@
 /*                                              -*- mode:C++ -*-
-  Element_Soldier_Red.h Red Soldier Agent
+  Element_Scout_Blue.h Blue Scout Agent
   Copyright (C) 2014 The Regents of the University of New Mexico.  All rights reserved.
 
-  This library is free software; you can redistribute it and/or
+  This library is free software; you can Blueistribute it and/or
   modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
@@ -19,21 +19,22 @@
 */
 
 /**
-  \file   Element_Soldier_Red.h Abstract Tower element for base class
+  \file   Element_Scout_Blue.h Abstract Tower element for base class
   \author Trent R. Small.
   \author Ezra Stallings
   \date (C) 2014 All rights reserved.
   \lgpl
  */
-#ifndef ELEMENT_SOLDIER_RED_H
-#define ELEMENT_SOLDIER_RED_H
+#ifndef ELEMENT_SCOUT_BLUE_H
+#define ELEMENT_SCOUT_BLUE_H
 
 #include "Element.h"
 #include "EventWindow.h"
 #include "ElementTable.h"
 #include "itype.h"
 #include "P3Atom.h"
-#include "Abstract_Element_Soldier.h"
+#include "Abstract_Element_Scout.h"
+#include "Element_Breadcrumb_Blue.h"
 
 namespace MFM
 {
@@ -41,7 +42,7 @@ namespace MFM
   #define WAR_VERSION 1
 
   template <class CC>
-  class Element_Soldier_Red : public Abstract_Element_Soldier<CC>
+  class Element_Scout_Blue : public Abstract_Element_Scout<CC>
   {
     // Extract short names for parameter types
     typedef typename CC::ATOM_TYPE T;
@@ -50,62 +51,59 @@ namespace MFM
 
   public:
 
-    static Element_Soldier_Red<CC> THE_INSTANCE;
+    static Element_Scout_Blue<CC> THE_INSTANCE;
 
     static const u32 TYPE()
     {
       return THE_INSTANCE.GetType();
     }
 
-    Element_Soldier_Red()
-      : Abstract_Element_Soldier<CC>(MFM_UUID_FOR("SoldierXBRed", WAR_VERSION))
+    Element_Scout_Blue()
+      : Abstract_Element_Scout<CC>(MFM_UUID_FOR("ScoutXBBlue", WAR_VERSION))
     {
-      Element<CC>::SetAtomicSymbol("Sr");
-      Element<CC>::SetName("Red Soldier");
+      Element<CC>::SetAtomicSymbol("Sb");
+      Element<CC>::SetName("Blue Scout");
     }
 
     virtual u32 DefaultPhysicsColor() const
     {
-      return 0xffa00000;
+      return 0xff0000ff;
     }
 
     virtual const T& GetDefaultAtom() const
     {
       static T defaultAtom(TYPE(),0,0,0);
 
-      Abstract_Element_Soldier<CC>::
-	    SetCurrentHealth(defaultAtom, (u32) Abstract_Element_Soldier<CC>::m_defaultHealth.GetValue());
-      
-      Abstract_Element_Soldier<CC>::
-      SetCurrentLifeTimer(defaultAtom, (u32) Abstract_Element_Soldier<CC>::m_defaultLifeTimer.GetValue());
+      Abstract_Element_Scout<CC>::
+	    SetCurrentHealth(defaultAtom, (u32) Abstract_Element_Scout<CC>::m_defaultHealth.GetValue());
+
+      Abstract_Element_Scout<CC>::
+      SetCurrentDirection(defaultAtom, rand() % Dirs::DIR_COUNT);
+
+      Abstract_Element_Scout<CC>::
+      SetCurrentLifeTimer(defaultAtom, (u32) Abstract_Element_Scout<CC>::m_defaultLifeTimer.GetValue());
 
       return defaultAtom;
     }
 
-    const Element<CC>* GetScoutElement()      const;
-    const Element<CC>* GetTowerElement()      const;
-    const Element<CC>* GetColonistElement()   const;
-    const Element<CC>* GetBreadcrumbElement() const;
+    virtual const Abstract_Element_Breadcrumb<CC>& GetBreadcrumbElement() const
+    {
+      return Element_Breadcrumb_Blue<CC>::THE_INSTANCE;
+    }
 
-    const bool AttemptAttack(EventWindow<CC>& window, SPoint location) const;
-
-
-    const bool IsMyBreadcrumbType(const u32 type) const;
-    const bool IsMyBreadcrumbAlerted(const T& bc) const;
-    const u32 GetMyBreadcrumbIndex(const T& bc) const;
+    virtual const bool IsAtomEnemy(EventWindow<CC>& window, const T& atom) const;
 
     virtual const char* GetDescription() const
     {
-      return "Red Soldier element.";
+      return "Blue Scout element.";
     }
   };
 
   template <class CC>
-  Element_Soldier_Red<CC> Element_Soldier_Red<CC>::THE_INSTANCE;
+  Element_Scout_Blue<CC> Element_Scout_Blue<CC>::THE_INSTANCE;
 
 }
 
+#include "Element_Scout_Blue.tcc"
 
-#include "Element_Soldier_Red.tcc"
-
-#endif /* ELEMENT_SOLDIER_RED_H */
+#endif /* ELEMENT_SCOUT_BLUE_H */

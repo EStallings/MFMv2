@@ -56,6 +56,7 @@ namespace MFM
 
     ElementParameterS32<CC> m_defaultHealth;
     ElementParameterS32<CC> m_attackDamage;
+    ElementParameterS32<CC> m_defaultLifeTimer;    
 
     enum
     {
@@ -65,10 +66,14 @@ namespace MFM
       // Element state fields
 
       CURRENT_HEALTH_POS = P3Atom<P>::P3_STATE_BITS_POS,
-      CURRENT_HEALTH_LEN = 10
+      CURRENT_HEALTH_LEN = 10,
+
+      CURRENT_LIFE_TIMER_POS = CURRENT_HEALTH_POS + CURRENT_HEALTH_LEN,
+      CURRENT_LIFE_TIMER_LEN = 10
     };
 
     typedef BitField<BitVector<BITS>, CURRENT_HEALTH_LEN, CURRENT_HEALTH_POS> AFCurrentHealth;
+    typedef BitField<BitVector<BITS>, CURRENT_LIFE_TIMER_LEN, CURRENT_LIFE_TIMER_POS> AFCurrentLifeTimer;
 
   public:
 
@@ -77,7 +82,9 @@ namespace MFM
         m_defaultHealth(this, "defaultHealth", "Default Health",
                   "This is the health the soldier will start with.", 1, 200, 1000, 10),
         m_attackDamage(this, "attackDamage", "Attack Damage",
-		            "This is the damage done in a single tick.", 1, 5, 100, 1)
+		            "This is the damage done in a single tick.", 1, 5, 100, 5),
+        m_defaultLifeTimer(this, "defaultLifeTimer", "Default Life Timer",
+                "This is the natural lifespan of the soldier.", 1, 250, 1000, 10)
     {}
 
     u32 GetCurrentHealth(const T& us) const
@@ -90,19 +97,27 @@ namespace MFM
       AFCurrentHealth::Write(this->GetBits(us), health);
     }
 
+    u32 GetCurrentLifeTimer(const T& us) const
+    {
+      return AFCurrentLifeTimer::Read(this->GetBits(us));
+    }
+
+    void SetCurrentLifeTimer(T& us, const u32 time) const
+    {
+      AFCurrentLifeTimer::Write(this->GetBits(us), time);
+    }
+
     virtual u32 PercentMovable(const T& you,
                                const T& me, const SPoint& offset) const
     {
       return 100;
     }
 
-    T GetMutableMe(const T& me) const
+    T GetMutableAtom(const T& oldMe) const
     {
-      T newMe(me.GetType(), 0, 0, 0);
+      T me = oldMe;
 
-      SetCurrentHealth(newMe, GetCurrentHealth(me));
-
-      return newMe;
+      return me;
     }
 
     virtual const Element<CC>* GetScoutElement()      const = 0;
@@ -120,14 +135,18 @@ namespace MFM
     virtual void Behavior(EventWindow<CC>& window) const
     {
       const T& constSelf = window.GetCenterAtom();
-      T self = GetMutableMe(constSelf);
+      T self = GetMutableAtom(constSelf);
       //Random& rand = window.GetRandom();
 
-      //If out of health, die
-      if(GetCurrentHealth(self) <= 0){
+      //Reduce life timer
+      SetCurrentLifeTimer(self, GetCurrentLifeTimer(self)-1);
+
+      //If out of health, or at the end of natural lifespan, die
+      if(GetCurrentHealth(self) <= 0 || GetCurrentLifeTimer(self) <= 0){
         window.SetCenterAtom(Element_Empty<CC>::THE_INSTANCE.GetDefaultAtom());
         return;
       }
+      window.SetCenterAtom(self);
 
       //Look through event window, and:
       // count enemy atoms nearby, and select a random one if applicable
@@ -176,11 +195,12 @@ namespace MFM
         for(u32 i = n.GetFirstIndex(1); i <= n.GetLastIndex(R); i++)
         {
           SPoint searchLoc = n.GetPoint(i)+breadcrumbLocation;
-          
-          if(window.GetRelativeAtom(searchLoc).GetType() == Element_Empty<CC>::THE_INSTANCE.GetType())
+          if(searchLoc.GetManhattanLength() < R)
           {
-            if(searchLoc.GetManhattanLength() < R)
+            if(window.GetRelativeAtom(searchLoc).GetType() == Element_Empty<CC>::THE_INSTANCE.GetType())
             {
+              LOG.Debug("Next Position:%d,%d", searchLoc.GetX(), searchLoc.GetY());
+            
               window.SwapAtoms(SPoint(0,0), searchLoc);
               return;
             }
