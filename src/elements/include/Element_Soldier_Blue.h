@@ -60,7 +60,7 @@ namespace MFM
     Element_Soldier_Blue()
       : Abstract_Element_Soldier<CC>(MFM_UUID_FOR("SoldierXBBlue", WAR_VERSION))
     {
-      Element<CC>::SetAtomicSymbol("Sb");
+      Element<CC>::SetAtomicSymbol("So");
       Element<CC>::SetName("Blue Soldier");
     }
 

@@ -66,7 +66,7 @@ namespace MFM
     Element_Breadcrumb_Blue() :
       Abstract_Element_Breadcrumb<CC>(MFM_UUID_FOR("BreadcrumbBlue", 1))
     {
-      Element<CC>::SetAtomicSymbol("Bb");
+      Element<CC>::SetAtomicSymbol("Bc");
       Element<CC>::SetName("BreadcrumbBlue");
     }
 
@@ -74,7 +74,7 @@ namespace MFM
     {
       if(Abstract_Element_Breadcrumb<CC>::IsAlert(atom))
       {
-	       return 0x7f7fff;
+	       return 0xffa0a0cc;
       }
       else
       {

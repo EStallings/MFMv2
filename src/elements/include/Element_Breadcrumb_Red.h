@@ -66,7 +66,7 @@ namespace MFM
     Element_Breadcrumb_Red() :
       Abstract_Element_Breadcrumb<CC>(MFM_UUID_FOR("BreadcrumbRed", 1))
     {
-      Element<CC>::SetAtomicSymbol("Br");
+      Element<CC>::SetAtomicSymbol("Bc");
       Element<CC>::SetName("BreadcrumbRed");
     }
 
@@ -84,7 +84,7 @@ namespace MFM
 
     virtual u32 DefaultPhysicsColor() const
     {
-      return 0xffff4040;
+      return 0xffcca0a0;
     }
 
     // Non-diffusable

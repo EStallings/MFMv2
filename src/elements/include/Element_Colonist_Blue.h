@@ -60,7 +60,7 @@ namespace MFM
     Element_Colonist_Blue()
       : Abstract_Element_Colonist<CC>(MFM_UUID_FOR("ColonistXBBlue", WAR_VERSION))
     {
-      Element<CC>::SetAtomicSymbol("Cb");
+      Element<CC>::SetAtomicSymbol("Co");
       Element<CC>::SetName("Blue Colonist");
     }
 
@@ -81,6 +81,9 @@ namespace MFM
 
       Abstract_Element_Colonist<CC>::
        SetTowerChance(defaultAtom, (u32) Abstract_Element_Colonist<CC>::m_towerChance.GetValue());
+
+       Abstract_Element_Colonist<CC>::
+      SetCurrentLifeTimer(defaultAtom, (u32) Abstract_Element_Colonist<CC>::m_defaultLifeTimer.GetValue());
 
       return defaultAtom;
     }

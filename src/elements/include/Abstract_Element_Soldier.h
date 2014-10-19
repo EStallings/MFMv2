@@ -80,9 +80,9 @@ namespace MFM
     Abstract_Element_Soldier(UUID u)
       : Element<CC>(u),
         m_defaultHealth(this, "defaultHealth", "Default Health",
-                  "This is the health the soldier will start with.", 1, 200, 1000, 10),
+                  "This is the health the soldier will start with.", 1, 4, 15, 1),
         m_attackDamage(this, "attackDamage", "Attack Damage",
-		            "This is the damage done in a single tick.", 1, 5, 100, 5),
+		            "This is the damage done in a single tick.", 1, 1, 3, 1),
         m_defaultLifeTimer(this, "defaultLifeTimer", "Default Life Timer",
                 "This is the natural lifespan of the soldier.", 1, 250, 1000, 10)
     {}

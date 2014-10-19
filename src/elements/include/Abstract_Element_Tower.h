@@ -72,7 +72,7 @@ namespace MFM
     Abstract_Element_Tower(UUID u)
       : Element<CC>(u),
         m_defaultHealth(this, "defaultHealth", "Default Health",
-                  "This is the health the tower will start with.", 1, 10, 1000, 10),
+                  "This is the health the tower will start with.", 1, 10, 20, 1),
         m_soldierSpawnChance(this, "soldierSpawnChance", "Soldier Spawn Chance",
                   "This is the chance of spawning a soldier in a given tick.", 1, 80, 1000, 10),
         m_colonistSpawnChance(this, "colonistSpawnChance", "Colonist Spawn Chance",

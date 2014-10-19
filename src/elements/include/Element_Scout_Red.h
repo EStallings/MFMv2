@@ -61,13 +61,13 @@ namespace MFM
     Element_Scout_Red()
       : Abstract_Element_Scout<CC>(MFM_UUID_FOR("ScoutXBRed", WAR_VERSION))
     {
-      Element<CC>::SetAtomicSymbol("Sr");
+      Element<CC>::SetAtomicSymbol("Sc");
       Element<CC>::SetName("Red Scout");
     }
 
     virtual u32 DefaultPhysicsColor() const
     {
-      return 0xffff0000;
+      return 0xffdda0a0;
     }
 
     virtual const T& GetDefaultAtom() const
@@ -79,6 +79,9 @@ namespace MFM
 
       Abstract_Element_Scout<CC>::
       SetCurrentDirection(defaultAtom, rand() % Dirs::DIR_COUNT);
+
+      Abstract_Element_Scout<CC>::
+      SetID(defaultAtom, rand() % (1<<Abstract_Element_Scout<CC>::ID_LEN));
 
       Abstract_Element_Scout<CC>::
       SetCurrentLifeTimer(defaultAtom, (u32) Abstract_Element_Scout<CC>::m_defaultLifeTimer.GetValue());

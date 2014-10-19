@@ -60,7 +60,7 @@ namespace MFM
     Element_Colonist_Red()
       : Abstract_Element_Colonist<CC>(MFM_UUID_FOR("ColonistXBRed", WAR_VERSION))
     {
-      Element<CC>::SetAtomicSymbol("Cr");
+      Element<CC>::SetAtomicSymbol("Co");
       Element<CC>::SetName("Red Colonist");
     }
 
@@ -81,6 +81,9 @@ namespace MFM
 
       Abstract_Element_Colonist<CC>::
        SetTowerChance(defaultAtom, (u32) Abstract_Element_Colonist<CC>::m_towerChance.GetValue());
+
+       Abstract_Element_Colonist<CC>::
+      SetCurrentLifeTimer(defaultAtom, (u32) Abstract_Element_Colonist<CC>::m_defaultLifeTimer.GetValue());
 
       return defaultAtom;
     }

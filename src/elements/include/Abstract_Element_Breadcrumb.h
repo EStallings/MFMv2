@@ -52,7 +52,10 @@ namespace MFM
       //////
       // Element state fields
 
-      INDEX_POS = P3Atom<P>::P3_STATE_BITS_POS,
+      PATH_ID_POS = P3Atom<P>::P3_STATE_BITS_POS,
+      PATH_ID_LEN = 10,
+
+      INDEX_POS = PATH_ID_POS + PATH_ID_LEN,
       INDEX_LEN = 10,
 
       PREV_INDEX_POS = INDEX_POS + INDEX_LEN,
@@ -69,6 +72,7 @@ namespace MFM
     };
 
    protected:
+    typedef BitField<BitVector<BITS>, PATH_ID_LEN, PATH_ID_POS> AFPathID;
     typedef BitField<BitVector<BITS>, INDEX_LEN, INDEX_POS> AFIndex;
     typedef BitField<BitVector<BITS>, PREV_INDEX_LEN, PREV_INDEX_POS> AFPrevIndex;
     typedef BitField<BitVector<BITS>, NEXT_INDEX_LEN, NEXT_INDEX_POS> AFNextIndex;
@@ -143,6 +147,16 @@ namespace MFM
     }
 
 
+    u32 GetPathID(const T& us) const
+    {
+      return AFPathID::Read(this->GetBits(us));
+    }
+
+    void SetPathID(T& us, const u32 id) const
+    {
+      AFPathID::Write(this->GetBits(us), id);
+    }
+
     u32 GetIndex(const T& us) const
     {
       return AFIndex::Read(this->GetBits(us));
@@ -212,12 +226,12 @@ namespace MFM
           if(window.GetRelativeAtom(pt).GetType() ==
              GetMyBreadcrumbType())
           {
-            if(GetIndex(window.GetRelativeAtom(pt)) == GetPrevIndex(me))
+            if(GetIndex(window.GetRelativeAtom(pt)) == GetPrevIndex(me) && GetPathID(window.GetRelativeAtom(pt)) == GetPathID(me))
             {
               pred = pt;
               fP = true;
             }
-            else if(GetIndex(window.GetRelativeAtom(pt)) == GetNextIndex(me))
+            else if(GetIndex(window.GetRelativeAtom(pt)) == GetNextIndex(me) && GetPathID(window.GetRelativeAtom(pt)) == GetPathID(me))
             {
               succ = pt;
               fS = true;

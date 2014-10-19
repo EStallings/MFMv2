@@ -73,7 +73,10 @@ namespace MFM
       CURRENT_BREADCRUMB_INDEX_LEN = 8,
 
       CURRENT_LIFE_TIMER_POS = CURRENT_BREADCRUMB_INDEX_POS + CURRENT_BREADCRUMB_INDEX_LEN,
-      CURRENT_LIFE_TIMER_LEN = 10
+      CURRENT_LIFE_TIMER_LEN = 10,
+
+      ID_POS = CURRENT_LIFE_TIMER_POS + CURRENT_LIFE_TIMER_LEN,
+      ID_LEN = 10
     };
 
     typedef BitField<BitVector<BITS>, CURRENT_HEALTH_LEN, CURRENT_HEALTH_POS> AFCurrentHealth;
@@ -81,13 +84,14 @@ namespace MFM
     typedef BitField<BitVector<BITS>, CURRENT_BREADCRUMB_INDEX_LEN, CURRENT_BREADCRUMB_INDEX_POS>
             AFCurrentBreadcrumbIndex;
     typedef BitField<BitVector<BITS>, CURRENT_LIFE_TIMER_LEN, CURRENT_LIFE_TIMER_POS> AFCurrentLifeTimer;
+    typedef BitField<BitVector<BITS>, ID_LEN, ID_POS> AFID;
 
   public:
 
     Abstract_Element_Scout(UUID u)
       : Element<CC>(u),
         m_defaultHealth(this, "defaultHealth", "Default Health",
-                  "This is the health the scout will start with.", 1, 200, 1000, 10),
+                  "This is the health the scout will start with.", 1, 2, 15, 1),
         m_changeDirectionChance(this, "changeDirectionChance", "Change Direction Chance",
 		  "This is the chance of changing direction in a given tick.", 1, 20, 100, 1),
 	m_stutterChance(this, "stutterChance", "Stutter Movement Chance",
@@ -95,6 +99,16 @@ namespace MFM
   m_defaultLifeTimer(this, "defaultLifeTimer", "Default Life Timer",
                 "This is the natural lifespan of the scout.", 1, 350, 1000, 10)
     {}
+
+    u32 GetID(const T& us) const
+    {
+      return AFID::Read(this->GetBits(us));
+    }
+
+    void SetID(T& us, const u32 id) const
+    {
+      AFID::Write(this->GetBits(us), id);
+    }
 
     u32 GetCurrentLifeTimer(const T& us) const
     {

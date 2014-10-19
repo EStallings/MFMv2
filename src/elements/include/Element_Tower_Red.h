@@ -60,13 +60,13 @@ namespace MFM
     Element_Tower_Red()
       : Abstract_Element_Tower<CC>(MFM_UUID_FOR("TowerRed", WAR_VERSION))
     {
-      Element<CC>::SetAtomicSymbol("Tr");
+      Element<CC>::SetAtomicSymbol("To");
       Element<CC>::SetName("Red Tower");
     }
 
     virtual u32 DefaultPhysicsColor() const
     {
-      return 0xffff0000;
+      return 0xffff0b0b;
     }
 
     virtual const T& GetDefaultAtom() const

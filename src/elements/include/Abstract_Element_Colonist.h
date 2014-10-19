@@ -34,6 +34,7 @@
 #include "itype.h"
 #include "P3Atom.h"
 #include "Element_Empty.h"
+#include "Abstract_Element_Tower.h"
 
 namespace MFM
 {
@@ -54,6 +55,7 @@ namespace MFM
     ElementParameterS32<CC> m_changeDirectionChance;
     ElementParameterS32<CC> m_stutterChance;
     ElementParameterS32<CC> m_towerChance;
+    ElementParameterS32<CC> m_defaultLifeTimer;
 
     enum
     {
@@ -69,27 +71,42 @@ namespace MFM
       CURRENT_DIRECTION_LEN = 3,
 
       TOWER_CHANCE_POS = CURRENT_DIRECTION_POS + CURRENT_DIRECTION_LEN,
-      TOWER_CHANCE_LEN = 8
+      TOWER_CHANCE_LEN = 8,
+
+      CURRENT_LIFE_TIMER_POS = TOWER_CHANCE_POS + TOWER_CHANCE_LEN,
+      CURRENT_LIFE_TIMER_LEN = 10
     };
 
     typedef BitField<BitVector<BITS>, CURRENT_HEALTH_LEN, CURRENT_HEALTH_POS> AFCurrentHealth;
     typedef BitField<BitVector<BITS>, CURRENT_DIRECTION_LEN, CURRENT_DIRECTION_POS> AFCurrentDirection;
     typedef BitField<BitVector<BITS>, TOWER_CHANCE_LEN, TOWER_CHANCE_POS> AFTowerChance;
+    typedef BitField<BitVector<BITS>, CURRENT_LIFE_TIMER_LEN, CURRENT_LIFE_TIMER_POS> AFCurrentLifeTimer;
 
   public:
 
     Abstract_Element_Colonist(UUID u)
       : Element<CC>(u),
         m_defaultHealth(this, "defaultHealth", "Default Health",
-                  "This is the health the colonist will start with.", 1, 200, 1000, 10),
+                  "This is the health the colonist will start with.", 1, 3, 15, 1),
         m_changeDirectionChance(this, "changeDirectionChance", "Change Direction Chance",
 		            "This is the chance of changing direction in a given tick.", 1, 90, 100, 1),
       	m_stutterChance(this, "stutterChance", "Stutter Movement Chance",
       			    "This is the chance of stuttering movement.", 1, 50, 100,1),
         m_towerChance(this, "towerChance", "Tower Placement Chance",
-
-                "This is the chance of making a tower, decreases over time.", 50,1000,200,10)
+                "This is the chance of making a tower, decreases over time.", 50,1000,200,10),
+        m_defaultLifeTimer(this, "defaultLifeTimer", "Default Life Timer",
+                "This is the natural lifespan of the colonist.", 1, 350, 1000, 10)
     {}
+
+    u32 GetCurrentLifeTimer(const T& us) const
+    {
+      return AFCurrentLifeTimer::Read(this->GetBits(us));
+    }
+
+    void SetCurrentLifeTimer(T& us, const u32 time) const
+    {
+      AFCurrentLifeTimer::Write(this->GetBits(us), time);
+    }
 
     u32 GetCurrentHealth(const T& us) const
     {
@@ -142,17 +159,42 @@ namespace MFM
       T self = GetMutableAtom(constSelf);
       Random& rand = window.GetRandom();
 
-      //If out of health, die
-      if(GetCurrentHealth(self) <= 0){
+      //Reduce life timer
+      SetCurrentLifeTimer(self, GetCurrentLifeTimer(self)-1);
+
+      //If out of health, or at the end of natural lifespan, die
+      if(GetCurrentHealth(self) <= 0 || GetCurrentLifeTimer(self) <= 0){
         window.SetCenterAtom(Element_Empty<CC>::THE_INSTANCE.GetDefaultAtom());
         return;
       }
+      window.SetCenterAtom(self);
 
       //Reduce tower chance
       SetTowerChance(self, GetTowerChance(self) - 1);
 
+      bool foundTower = false;
+
+       //Scan event window for towers; if one spotted, can't place (and possibly die)
+      MDist<R>& md = MDist<R>::get();
+      for(u32 i = md.GetFirstIndex(1); i <= md.GetLastIndex(R); i++)
+      {
+        SPoint pt = md.GetPoint(i);
+        const u32 type = window.GetRelativeAtom(pt).GetType();
+        const Element<CC> * elt = window.GetTile().GetElement(type);
+        if( (dynamic_cast<const Abstract_Element_Tower<CC>*>(elt)) )
+        {
+          foundTower = true;
+        }
+      }
+
+      //possibly die if we found a tower
+      if(foundTower && rand.OneIn(3))
+      {
+        window.SetCenterAtom(Element_Empty<CC>::THE_INSTANCE.GetDefaultAtom());
+      }
+
       //Possibly turn into tower
-      if(rand.OneIn(GetTowerChance(self)))
+      if((!foundTower) && rand.OneIn(GetTowerChance(self)))
       {
         window.SetCenterAtom(GetDefaultTower());
         return;
