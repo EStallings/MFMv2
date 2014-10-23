@@ -76,9 +76,9 @@ namespace MFM
         m_soldierSpawnChance(this, "soldierSpawnChance", "Soldier Spawn Chance",
                   "This is the chance of spawning a soldier in a given tick.", 1, 80, 1000, 10),
         m_colonistSpawnChance(this, "colonistSpawnChance", "Colonist Spawn Chance",
-                  "This is the chance of spawning a colonist in a given tick.", 1, 1000, 1000, 10),
+                  "This is the chance of spawning a colonist in a given tick.", 500, 5000, 10000, 500),
         m_scoutSpawnChance(this, "scoutSpawnChance", "Scout Spawn Chance",
-                  "This is the chance of spawning a scout in a given tick.", 1, 400, 1000, 10)
+                  "This is the chance of spawning a scout in a given tick.", 200, 1000, 10000, 100)
     {}
 
     u32 GetCurrentHealth(const T& us) const
