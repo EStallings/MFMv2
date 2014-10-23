@@ -204,9 +204,11 @@ namespace MFM
       const T& me = window.GetCenterAtom();
       //LOG.Debug("Examining BC:%d; Pred=%d, Succ=%d, timer=%d", GetIndex(me), GetPrevIndex(me), GetNextIndex(me), GetCooldownTimer(me));
 
-      T mutableMe = GetMutableAtom(window.GetCenterAtom());
-      DecrementCooldown(mutableMe);
-      window.SetCenterAtom(mutableMe);
+      if(!IsAlert(me)){
+        T mutableMe = GetMutableAtom(window.GetCenterAtom());
+        DecrementCooldown(mutableMe);
+        window.SetCenterAtom(mutableMe);
+      }
 
       if(!IsCooldown(me))
       {
@@ -240,7 +242,8 @@ namespace MFM
         }
 
         //Become alert if neighbor is alert
-        if((!IsAlert(me)) && ((fP && IsAlert(window.GetRelativeAtom(pred))) || (fS && IsAlert(window.GetRelativeAtom(succ)))))
+        //if((!IsAlert(me)) && ((fP && IsAlert(window.GetRelativeAtom(pred))) || (fS && IsAlert(window.GetRelativeAtom(succ)))))
+        if((!IsAlert(me)) && (fS && IsAlert(window.GetRelativeAtom(succ))))
         {
           T mutableMe = GetMutableAtom(window.GetCenterAtom());
           Alert(mutableMe);

@@ -76,6 +76,9 @@ namespace MFM
       Abstract_Element_Tower<CC>::
 	    SetCurrentHealth(defaultAtom, (u32) Abstract_Element_Tower<CC>::m_defaultHealth.GetValue());
 
+      Abstract_Element_Tower<CC>::
+      SetID(defaultAtom, rand() % (1<<Abstract_Element_Tower<CC>::ID_LEN));
+
       return defaultAtom;
     }
 

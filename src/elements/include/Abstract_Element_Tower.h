@@ -61,10 +61,14 @@ namespace MFM
       // Element state fields
 
       CURRENT_HEALTH_POS = P3Atom<P>::P3_STATE_BITS_POS,
-      CURRENT_HEALTH_LEN = 10
+      CURRENT_HEALTH_LEN = 10,
+
+      ID_POS = CURRENT_HEALTH_POS + CURRENT_HEALTH_LEN,
+      ID_LEN = 10
     };
 
     typedef BitField<BitVector<BITS>, CURRENT_HEALTH_LEN, CURRENT_HEALTH_POS> AFCurrentHealth;
+    typedef BitField<BitVector<BITS>, ID_LEN, ID_POS> AFID;
 
 
   public:
@@ -80,6 +84,16 @@ namespace MFM
         m_scoutSpawnChance(this, "scoutSpawnChance", "Scout Spawn Chance",
                   "This is the chance of spawning a scout in a given tick.", 200, 1000, 10000, 100)
     {}
+
+    u32 GetID(const T& us) const
+    {
+      return AFID::Read(this->GetBits(us));
+    }
+
+    void SetID(T& us, const u32 id) const
+    {
+      AFID::Write(this->GetBits(us), id);
+    }
 
     u32 GetCurrentHealth(const T& us) const
     {

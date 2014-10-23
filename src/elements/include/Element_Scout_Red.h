@@ -94,7 +94,7 @@ namespace MFM
       return Element_Breadcrumb_Red<CC>::THE_INSTANCE;
     }
 
-    virtual const bool IsAtomEnemy(EventWindow<CC>& window, const T& atom) const;
+    virtual const bool IsAtomInteresting(EventWindow<CC>& window, const T& atom) const;
 
     virtual const char* GetDescription() const
     {

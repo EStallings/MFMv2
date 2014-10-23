@@ -164,7 +164,7 @@ namespace MFM
     }
 
     virtual const Abstract_Element_Breadcrumb<CC>& GetBreadcrumbElement() const = 0;
-    virtual const bool IsAtomEnemy(EventWindow<CC>& window, const T& atom) const = 0;
+    virtual const bool IsAtomInteresting(EventWindow<CC>& window, const T& atom) const = 0;
 
     virtual void Behavior(EventWindow<CC>& window) const
     {
@@ -182,20 +182,25 @@ namespace MFM
       }
       window.SetCenterAtom(self);
 
-      //Scan event window for enemies; if one spotted, replace self with alerted breadcrumb
-      MDist<R>& md = MDist<R>::get();
-      for(u32 i = md.GetFirstIndex(1); i <= md.GetLastIndex(R); i++)
+      //Scan event window for points of interest; if one spotted, replace self with alerted breadcrumb
+      //Do this ONLY if we've existed for a while.
+      if(GetCurrentLifeTimer(self) < (u32)(m_defaultLifeTimer.GetValue() - 10))
       {
-        SPoint pt = md.GetPoint(i);
-        
-        if(IsAtomEnemy(window, window.GetRelativeAtom(pt)))
+        MDist<R>& md = MDist<R>::get();
+        for(u32 i = md.GetFirstIndex(1); i <= md.GetLastIndex(R); i++)
         {
-          const Abstract_Element_Breadcrumb<CC>& bcClass = GetBreadcrumbElement();
-          T bc = bcClass.GetMutableAtom(bcClass.GetDefaultAtom());
-          bcClass.SetIndex(bc, GetCurrentBreadcrumbIndex(self));
-          bcClass.Alert(bc);
-          window.SetCenterAtom(bc);
-          return;
+          SPoint pt = md.GetPoint(i);
+          
+          if(IsAtomInteresting(window, window.GetRelativeAtom(pt)))
+          {
+            const Abstract_Element_Breadcrumb<CC>& bcClass = GetBreadcrumbElement();
+            T bc = bcClass.GetMutableAtom(bcClass.GetDefaultAtom());
+            bcClass.SetIndex(bc, GetCurrentBreadcrumbIndex(self));
+            bcClass.SetPrevIndex(bc, GetCurrentBreadcrumbIndex(self)-1);
+            bcClass.Alert(bc);
+            window.SetCenterAtom(bc);
+            return;
+          }
         }
       }
 

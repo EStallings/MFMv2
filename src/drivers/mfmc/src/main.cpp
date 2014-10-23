@@ -70,12 +70,6 @@ namespace MFM
       this->NeedElement(&Element_Scout_Red<CC>::THE_INSTANCE);
       this->NeedElement(&Element_Breadcrumb_Red<CC>::THE_INSTANCE);
       this->NeedElement(&Element_Soldier_Red<CC>::THE_INSTANCE);
-
-      this->NeedElement(&Element_Tower_Blue<CC>::THE_INSTANCE);
-      this->NeedElement(&Element_Colonist_Blue<CC>::THE_INSTANCE);
-      this->NeedElement(&Element_Scout_Blue<CC>::THE_INSTANCE);
-      this->NeedElement(&Element_Breadcrumb_Blue<CC>::THE_INSTANCE);
-      this->NeedElement(&Element_Soldier_Blue<CC>::THE_INSTANCE);
     }
 
   public:
