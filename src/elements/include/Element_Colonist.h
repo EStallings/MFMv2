@@ -1,5 +1,5 @@
 /*                                              -*- mode:C++ -*-
-  Abstract_Element_Colonist.h Abstract Tower element for base class
+  Element_Colonist.h Abstract Tower element for base class
   Copyright (C) 2014 The Regents of the University of New Mexico.  All rights reserved.
 
   This library is free software; you can redistribute it and/or
@@ -19,14 +19,14 @@
 */
 
 /**
-  \file   Abstract_Element_Colonist.h Abstract Tower element for base class
+  \file   Element_Colonist.h Abstract Tower element for base class
   \author Trent R. Small.
   \author Ezra Stallings
   \date (C) 2014 All rights reserved.
   \lgpl
  */
-#ifndef ABSTRACT_ELEMENT_COLONIST_H
-#define ABSTRACT_ELEMENT_COLONIST_H
+#ifndef ELEMENT_COLONIST_H
+#define ELEMENT_COLONIST_H
 
 #include "Element.h"
 #include "EventWindow.h"
@@ -34,8 +34,8 @@
 #include "itype.h"
 #include "P3Atom.h"
 #include "Element_Empty.h"
-#include "Abstract_Element_Tower.h"
-#include "Abstract_Element_Breadcrumb.h"
+#include "Element_Tower.h"
+#include "Element_Breadcrumb.h"
 
 namespace MFM
 {
@@ -43,7 +43,7 @@ namespace MFM
   #define WAR_VERSION 1
 
   template <class CC>
-  class Abstract_Element_Colonist : public Element<CC>
+  class Element_Colonist : public Element<CC>
   {
     // Extract short names for parameter types
     typedef typename CC::ATOM_TYPE T;
@@ -94,19 +94,61 @@ namespace MFM
 
   public:
 
-    Abstract_Element_Colonist(UUID u)
-      : Element<CC>(u),
+
+    static Element_Colonist<CC> THE_INSTANCE;
+
+    static const u32 TYPE()
+    {
+      return THE_INSTANCE.GetType();
+    }
+
+    Element_Colonist()
+      : Element<CC>(MFM_UUID_FOR("ColonistXBRed", WAR_VERSION)),
         m_defaultHealth(this, "defaultHealth", "Default Health",
                   "This is the health the colonist will start with.", 1, 3, 15, 1),
         m_changeDirectionChance(this, "changeDirectionChance", "Change Direction Chance",
-		            "This is the chance of changing direction in a given tick.", 1, 90, 100, 1),
-      	m_stutterChance(this, "stutterChance", "Stutter Movement Chance",
-      			    "This is the chance of stuttering movement.", 1, 50, 100,1),
+                "This is the chance of changing direction in a given tick.", 1, 90, 100, 1),
+        m_stutterChance(this, "stutterChance", "Stutter Movement Chance",
+                "This is the chance of stuttering movement.", 1, 50, 100,1),
         m_towerChance(this, "towerChance", "Tower Placement Chance",
                 "This is the chance of making a tower, decreases over time.", 50,1000,200,10),
         m_defaultLifeTimer(this, "defaultLifeTimer", "Default Life Timer",
                 "This is the natural lifespan of the colonist.", 1, 350, 1000, 10)
-    {}
+    {
+      Element<CC>::SetAtomicSymbol("Co");
+      Element<CC>::SetName("Red Colonist");
+    }
+
+    virtual u32 DefaultPhysicsColor() const
+    {
+      return 0xffa00000;
+    }
+
+    virtual const T& GetDefaultAtom() const
+    {
+      static T defaultAtom(TYPE(),0,0,0);
+
+      Abstract_Element_Colonist<CC>::
+       SetCurrentHealth(defaultAtom, (u32) Abstract_Element_Colonist<CC>::m_defaultHealth.GetValue());
+
+      Abstract_Element_Colonist<CC>::
+       SetCurrentDirection(defaultAtom, rand() % Dirs::DIR_COUNT);
+
+      Abstract_Element_Colonist<CC>::
+       SetTowerChance(defaultAtom, (u32) Abstract_Element_Colonist<CC>::m_towerChance.GetValue());
+
+       Abstract_Element_Colonist<CC>::
+      SetCurrentLifeTimer(defaultAtom, (u32) Abstract_Element_Colonist<CC>::m_defaultLifeTimer.GetValue());
+
+      return defaultAtom;
+    }
+
+    const T& GetDefaultTower() const;
+
+    virtual const char* GetDescription() const
+    {
+      return "Red Colonist element.";
+    }
 
     u32 GetCurrentLifeTimer(const T& us) const
     {
@@ -191,7 +233,7 @@ namespace MFM
         SPoint pt = md.GetPoint(i);
         const u32 type = window.GetRelativeAtom(pt).GetType();
         const Element<CC> * elt = window.GetTile().GetElement(type);
-        if( (dynamic_cast<const Abstract_Element_Tower<CC>*>(elt)) )
+        if( (dynamic_cast<const Element_Tower<CC>*>(elt)) )
         {
           foundTower = true;
         }
@@ -240,6 +282,12 @@ namespace MFM
       }
     }
   };
+
+  template <class CC>
+  Element_Colonist<CC> Element_Colonist<CC>::THE_INSTANCE;
 }
 
-#endif /* ABSTRACT_ELEMENT_COLONIST_H */
+#include "Element_Colonist.tcc"
+
+
+#endif /* ELEMENT_COLONIST_H */

@@ -22,7 +22,7 @@ namespace MFM
     //disabled for now
     if(rand.OneIn(m_soldierSpawnChance.GetValue()))
     {
-      //PlaceAtomRandomly(window, GetDefaultSoldier());
+      PlaceAtomRandomly(window, GetDefaultSoldier());
     }
 
     //disabled for now
@@ -34,7 +34,6 @@ namespace MFM
     if(rand.OneIn(m_scoutSpawnChance.GetValue()))
     {
       const T& scout = GetDefaultScout();
-      //T mutableScout = Abstract_Element_Scout<CC>::GetMutableAtom(scout);
       PlaceAtomRandomly(window, scout);
     }
   }

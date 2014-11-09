@@ -1,5 +1,5 @@
 /*                                              -*- mode:C++ -*-
-  Abstract_Element_Colonist.h Abstract Tower element for base class
+  Element_Scout.h Abstract Tower element for base class
   Copyright (C) 2014 The Regents of the University of New Mexico.  All rights reserved.
 
   This library is free software; you can redistribute it and/or
@@ -19,14 +19,14 @@
 */
 
 /**
-  \file   Abstract_Element_Colonist.h Abstract Tower element for base class
+  \file   Element_Scout.h Abstract Tower element for base class
   \author Trent R. Small.
   \author Ezra Stallings
   \date (C) 2014 All rights reserved.
   \lgpl
  */
-#ifndef ABSTRACT_ELEMENT_COLONIST_H
-#define ABSTRACT_ELEMENT_COLONIST_H
+#ifndef ELEMENT_SCOUT_H
+#define ELEMENT_SCOUT_H
 
 #include "Element.h"
 #include "EventWindow.h"
@@ -34,8 +34,7 @@
 #include "itype.h"
 #include "P3Atom.h"
 #include "Element_Empty.h"
-#include "Abstract_Element_Tower.h"
-#include "Abstract_Element_Breadcrumb.h"
+#include "Element_Breadcrumb.h"
 
 namespace MFM
 {
@@ -43,7 +42,7 @@ namespace MFM
   #define WAR_VERSION 1
 
   template <class CC>
-  class Abstract_Element_Colonist : public Element<CC>
+  class Element_Scout : public Element<CC>
   {
     // Extract short names for parameter types
     typedef typename CC::ATOM_TYPE T;
@@ -55,7 +54,6 @@ namespace MFM
     ElementParameterS32<CC> m_defaultHealth;
     ElementParameterS32<CC> m_changeDirectionChance;
     ElementParameterS32<CC> m_stutterChance;
-    ElementParameterS32<CC> m_towerChance;
     ElementParameterS32<CC> m_defaultLifeTimer;
 
     enum
@@ -71,10 +69,7 @@ namespace MFM
       CURRENT_DIRECTION_POS = CURRENT_HEALTH_POS + CURRENT_HEALTH_LEN,
       CURRENT_DIRECTION_LEN = 3,
 
-      TOWER_CHANCE_POS = CURRENT_DIRECTION_POS + CURRENT_DIRECTION_LEN,
-      TOWER_CHANCE_LEN = 8,
-
-      CURRENT_BREADCRUMB_INDEX_POS = TOWER_CHANCE_POS + TOWER_CHANCE_LEN,
+      CURRENT_BREADCRUMB_INDEX_POS = CURRENT_DIRECTION_POS + CURRENT_DIRECTION_LEN,
       CURRENT_BREADCRUMB_INDEX_LEN = 8,
 
       CURRENT_LIFE_TIMER_POS = CURRENT_BREADCRUMB_INDEX_POS + CURRENT_BREADCRUMB_INDEX_LEN,
@@ -86,27 +81,79 @@ namespace MFM
 
     typedef BitField<BitVector<BITS>, CURRENT_HEALTH_LEN, CURRENT_HEALTH_POS> AFCurrentHealth;
     typedef BitField<BitVector<BITS>, CURRENT_DIRECTION_LEN, CURRENT_DIRECTION_POS> AFCurrentDirection;
-    typedef BitField<BitVector<BITS>, TOWER_CHANCE_LEN, TOWER_CHANCE_POS> AFTowerChance;
     typedef BitField<BitVector<BITS>, CURRENT_BREADCRUMB_INDEX_LEN, CURRENT_BREADCRUMB_INDEX_POS>
             AFCurrentBreadcrumbIndex;
     typedef BitField<BitVector<BITS>, CURRENT_LIFE_TIMER_LEN, CURRENT_LIFE_TIMER_POS> AFCurrentLifeTimer;
     typedef BitField<BitVector<BITS>, ID_LEN, ID_POS> AFID;
 
   public:
+     static Element_Scout_Red<CC> THE_INSTANCE;
 
-    Abstract_Element_Colonist(UUID u)
-      : Element<CC>(u),
+    static const u32 TYPE()
+    {
+      return THE_INSTANCE.GetType();
+    }
+
+    Element_Scout_Red()
+      : Element<CC>(MFM_UUID_FOR("ScoutXBRed", WAR_VERSION)),
         m_defaultHealth(this, "defaultHealth", "Default Health",
-                  "This is the health the colonist will start with.", 1, 3, 15, 1),
+          "This is the health the scout will start with.", 1, 2, 15, 1),
         m_changeDirectionChance(this, "changeDirectionChance", "Change Direction Chance",
-		            "This is the chance of changing direction in a given tick.", 1, 90, 100, 1),
-      	m_stutterChance(this, "stutterChance", "Stutter Movement Chance",
-      			    "This is the chance of stuttering movement.", 1, 50, 100,1),
-        m_towerChance(this, "towerChance", "Tower Placement Chance",
-                "This is the chance of making a tower, decreases over time.", 50,1000,200,10),
+          "This is the chance of changing direction in a given tick.", 1, 20, 100, 1),
+        m_stutterChance(this, "stutterChance", "Stutter Movement Chance",
+          "This is the chance of stuttering movement.", 1, 10, 100,1),
         m_defaultLifeTimer(this, "defaultLifeTimer", "Default Life Timer",
-                "This is the natural lifespan of the colonist.", 1, 350, 1000, 10)
-    {}
+          "This is the natural lifespan of the scout.", 1, 350, 1000, 10)
+    {
+      Element<CC>::SetAtomicSymbol("Sc");
+      Element<CC>::SetName("Red Scout");
+    }
+
+    virtual u32 DefaultPhysicsColor() const
+    {
+      return 0xffdda0a0;
+    }
+
+    virtual const T& GetDefaultAtom() const
+    {
+      static T defaultAtom(TYPE(),0,0,0);
+
+      Abstract_Element_Scout<CC>::
+      SetCurrentHealth(defaultAtom, (u32) Abstract_Element_Scout<CC>::m_defaultHealth.GetValue());
+
+      Abstract_Element_Scout<CC>::
+      SetCurrentDirection(defaultAtom, rand() % Dirs::DIR_COUNT);
+
+      Abstract_Element_Scout<CC>::
+      SetID(defaultAtom, rand() % (1<<Abstract_Element_Scout<CC>::ID_LEN));
+
+      Abstract_Element_Scout<CC>::
+      SetCurrentLifeTimer(defaultAtom, (u32) Abstract_Element_Scout<CC>::m_defaultLifeTimer.GetValue());
+
+      return defaultAtom;
+    }
+
+    virtual const Abstract_Element_Breadcrumb<CC>& GetBreadcrumbElement() const
+    {
+      return Element_Breadcrumb_Red<CC>::THE_INSTANCE;
+    }
+
+    virtual const bool IsAtomInteresting(EventWindow<CC>& window, const T& atom) const;
+
+    virtual const char* GetDescription() const
+    {
+      return "Red Scout element.";
+    }
+
+    u32 GetID(const T& us) const
+    {
+      return AFID::Read(this->GetBits(us));
+    }
+
+    void SetID(T& us, const u32 id) const
+    {
+      AFID::Write(this->GetBits(us), id);
+    }
 
     u32 GetCurrentLifeTimer(const T& us) const
     {
@@ -138,14 +185,14 @@ namespace MFM
       AFCurrentDirection::Write(this->GetBits(us), direction);
     }
 
-    u32 GetTowerChance(const T& us) const
+    u32 GetCurrentBreadcrumbIndex(const T& us) const
     {
-      return AFTowerChance::Read(this->GetBits(us));
+      return AFCurrentBreadcrumbIndex::Read(this->GetBits(us));
     }
 
-    void SetTowerChance(T& us, const u32 i) const
+    void SetCurrentBreadcrumbIndex(T& us, const u32 i) const
     {
-      AFTowerChance::Write(this->GetBits(us), i);
+      AFCurrentBreadcrumbIndex::Write(this->GetBits(us), i);
     }
 
     virtual u32 PercentMovable(const T& you,
@@ -160,8 +207,6 @@ namespace MFM
 
       return me;
     }
-
-    virtual const T& GetDefaultTower() const = 0;
 
     virtual void Behavior(EventWindow<CC>& window) const
     {
@@ -179,53 +224,44 @@ namespace MFM
       }
       window.SetCenterAtom(self);
 
-      //Reduce tower chance
-      SetTowerChance(self, GetTowerChance(self) - 1);
-
-      bool foundTower = false;
-
-       //Scan event window for towers; if one spotted, can't place (and possibly die)
-      MDist<R>& md = MDist<R>::get();
-      for(u32 i = md.GetFirstIndex(1); i <= md.GetLastIndex(R); i++)
+      //Scan event window for points of interest; if one spotted, replace self with alerted breadcrumb
+      //Do this ONLY if we've existed for a while.
+      if(GetCurrentLifeTimer(self) < (u32)(m_defaultLifeTimer.GetValue() - 10))
       {
-        SPoint pt = md.GetPoint(i);
-        const u32 type = window.GetRelativeAtom(pt).GetType();
-        const Element<CC> * elt = window.GetTile().GetElement(type);
-        if( (dynamic_cast<const Abstract_Element_Tower<CC>*>(elt)) )
+        MDist<R>& md = MDist<R>::get();
+        for(u32 i = md.GetFirstIndex(1); i <= md.GetLastIndex(R); i++)
         {
-          foundTower = true;
+          SPoint pt = md.GetPoint(i);
+          
+          if(IsAtomInteresting(window, window.GetRelativeAtom(pt)))
+          {
+            const Element_Breadcrumb<CC>& bcClass = GetBreadcrumbElement();
+            T bc = bcClass.GetMutableAtom(bcClass.GetDefaultAtom());
+            bcClass.SetIndex(bc, GetCurrentBreadcrumbIndex(self));
+            bcClass.SetPrevIndex(bc, GetCurrentBreadcrumbIndex(self)-1);
+            bcClass.Alert(bc);
+            window.SetCenterAtom(bc);
+            return;
+          }
         }
-      }
-
-      //possibly die if we found a tower
-      if(foundTower && rand.OneIn(3))
-      {
-        window.SetCenterAtom(Element_Empty<CC>::THE_INSTANCE.GetDefaultAtom());
-      }
-
-      //Possibly turn into tower
-      if((!foundTower) && rand.OneIn(GetTowerChance(self)))
-      {
-        window.SetCenterAtom(GetDefaultTower());
-        return;
       }
 
       //Randomly change direction & stutter movement
       if(rand.OneIn(m_changeDirectionChance.GetValue())){
         SetCurrentDirection(self, rand.Create(8));
       }
+
       Dir curDirection = (Dir)GetCurrentDirection(self);
       
       if(rand.OneIn(m_stutterChance.GetValue())){
         curDirection = (Dir)rand.Create(8);
       }
 
-      //Move
+      //Move, leaving a breadcrumb behind
       window.SetCenterAtom(self);
-
       SPoint vec;
       Dirs::FillDir(vec, curDirection);
-      u32 speed = Dirs::IsCorner(curDirection) ? 2 : 4;
+      u32 speed = Dirs::IsCorner(curDirection) ? 1 : 2;
       
       for(u32 it = 0; it < 2; it++){
         vec *= (speed-it);
@@ -234,6 +270,16 @@ namespace MFM
         if(window.IsLiveSite(vec) &&
           window.GetRelativeAtom(vec).GetType() == Element_Empty<CC>::THE_INSTANCE.GetType())
         {
+        	const Element_Breadcrumb<CC>& bcClass = GetBreadcrumbElement();
+        	T bc = bcClass.GetMutableAtom(bcClass.GetDefaultAtom());
+        	bcClass.SetIndex(bc,     GetCurrentBreadcrumbIndex(self));
+          bcClass.SetPrevIndex(bc, GetCurrentBreadcrumbIndex(self)-1);
+          bcClass.SetNextIndex(bc, GetCurrentBreadcrumbIndex(self)+1);
+        	SetCurrentBreadcrumbIndex(self, GetCurrentBreadcrumbIndex(self) + 1);
+          bcClass.Cooldown(bc);
+        	window.SetCenterAtom(self);
+
+        	window.SetRelativeAtom(vec, bc);
         	window.SwapAtoms(vec, SPoint(0,0));
           return;
         }
@@ -242,4 +288,4 @@ namespace MFM
   };
 }
 
-#endif /* ABSTRACT_ELEMENT_COLONIST_H */
+#endif /* ELEMENT_SCOUT_H */
