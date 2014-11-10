@@ -108,8 +108,6 @@ namespace MFM
 
 
    private:
-    ElementParameterS32<CC> m_alertLength;
-    ElementParameterS32<CC> m_cooldownLength;
 
     u32 GetAlert(const T& us) const
     {
@@ -128,8 +126,7 @@ namespace MFM
     
 
     public:
-    Abstract_Element_Breadcrumb(const UUID & uuid) :
-      Element<CC>(uuid)
+    Abstract_Element_Breadcrumb(const UUID & uuid) : Element<CC>(uuid)
     { }
 
 

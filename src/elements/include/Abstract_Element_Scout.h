@@ -234,7 +234,6 @@ namespace MFM
           bcClass.SetPrevIndex(bc, GetCurrentBreadcrumbIndex(self)-1);
           bcClass.SetNextIndex(bc, GetCurrentBreadcrumbIndex(self)+1);
         	SetCurrentBreadcrumbIndex(self, GetCurrentBreadcrumbIndex(self) + 1);
-          bcClass.Cooldown(bc);
         	window.SetCenterAtom(self);
 
         	window.SetRelativeAtom(vec, bc);
