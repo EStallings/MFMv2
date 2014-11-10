@@ -67,8 +67,27 @@ namespace MFM
       ALERT_TIMER_POS = NEXT_INDEX_POS + NEXT_INDEX_LEN,
       ALERT_TIMER_LEN = 1,
 
-      COOLDOWN_TIMER_POS = ALERT_TIMER_POS + ALERT_TIMER_LEN,
-      COOLDOWN_TIMER_LEN = 9
+      UPSTREAM_MESSAGE_POS = ALERT_TIMER_POS + ALERT_TIMER_LEN,
+      UPSTREAM_MESSAGE_LEN = 8,
+
+      DOWNSTREAM_MESSAGE_POS = UPSTREAM_MESSAGE_POS + UPSTREAM_MESSAGE_LEN, 
+      DOWNSTREAM_MESSAGE_LEN = 8,
+
+      UPSTREAM_STRENGTH_POS = DOWNSTREAM_MESSAGE_POS + DOWNSTREAM_MESSAGE_LEN,
+      UPSTREAM_STRENGTH_LEN = 4,
+
+      DOWNSTREAM_STRENGTH_POS = UPSTREAM_STRENGTH_POS + UPSTREAM_STRENGTH_LEN, 
+      DOWNSTREAM_STRENGTH_LEN = 4,
+
+      UPSTREAM_COOLDOWN_POS = DOWNSTREAM_STRENGTH_POS + DOWNSTREAM_STRENGTH_LEN,
+      UPSTREAM_COOLDOWN_LEN = 4,
+
+      DOWNSTREAM_COOLDOWN_POS = UPSTREAM_COOLDOWN_POS + UPSTREAM_COOLDOWN_LEN, 
+      DOWNSTREAM_COOLDOWN_LEN = 4,
+
+      TRAFFIC_DIR_POS = DOWNSTREAM_COOLDOWN_POS + DOWNSTREAM_COOLDOWN_LEN,
+      TRAFFIC_DIR_LEN = 1
+
     };
 
    protected:
@@ -77,7 +96,16 @@ namespace MFM
     typedef BitField<BitVector<BITS>, PREV_INDEX_LEN, PREV_INDEX_POS> AFPrevIndex;
     typedef BitField<BitVector<BITS>, NEXT_INDEX_LEN, NEXT_INDEX_POS> AFNextIndex;
     typedef BitField<BitVector<BITS>, ALERT_TIMER_LEN, ALERT_TIMER_POS> AFAlertTimer;
-    typedef BitField<BitVector<BITS>, COOLDOWN_TIMER_LEN, COOLDOWN_TIMER_POS> AFCooldownTimer;
+
+    typedef BitField<BitVector<BITS>, UPSTREAM_MESSAGE_LEN, UPSTREAM_MESSAGE_POS> AFUpstreamMessage;
+    typedef BitField<BitVector<BITS>, DOWNSTREAM_MESSAGE_LEN, DOWNSTREAM_MESSAGE_POS> AFDownstreamMessage;
+    typedef BitField<BitVector<BITS>, UPSTREAM_STRENGTH_LEN, UPSTREAM_STRENGTH_POS> AFUpstreamStrength;
+    typedef BitField<BitVector<BITS>, DOWNSTREAM_STRENGTH_LEN, DOWNSTREAM_STRENGTH_POS> AFDownstreamStrength;
+    typedef BitField<BitVector<BITS>, UPSTREAM_COOLDOWN_LEN, UPSTREAM_COOLDOWN_POS> AFUpstreamCooldown;
+    typedef BitField<BitVector<BITS>, DOWNSTREAM_COOLDOWN_LEN, DOWNSTREAM_COOLDOWN_POS> AFDownstreamCooldown;
+
+    typedef BitField<BitVector<BITS>, TRAFFIC_DIR_LEN, TRAFFIC_DIR_POS> AFTrafficDir;
+
 
    private:
     ElementParameterS32<CC> m_alertLength;
@@ -93,26 +121,6 @@ namespace MFM
       AFAlertTimer::Write(this->GetBits(us), age);
     }
 
-    u32 GetCooldownTimer(const T& us) const
-    {
-      return AFCooldownTimer::Read(this->GetBits(us));
-    }
-
-    void SetCooldownTimer(T& us, const u32 age) const
-    {
-      AFCooldownTimer::Write(this->GetBits(us), age);
-    }
-
-    bool IsCooldown(const T& us) const
-    {
-      return GetCooldownTimer(us) > 0;
-    }
-
-    void DecrementCooldown(T& us) const
-    {
-      SetCooldownTimer(us, GetCooldownTimer(us) - 1);
-    }
-
    protected:
 
     virtual u32 GetMyBreadcrumbType() const = 0;
@@ -121,13 +129,7 @@ namespace MFM
 
     public:
     Abstract_Element_Breadcrumb(const UUID & uuid) :
-      Element<CC>(uuid),
-      m_alertLength(this, "alertLength", "Alert Length",
-        "Breadcrumb Alert timer initial length",
-        1, 100, 255, 1),
-      m_cooldownLength(this, "cooldownLength", "Cooldown Length",
-        "Breadcrumb Cooldown timer initial length",
-        1, 100, 255, 1)
+      Element<CC>(uuid)
     { }
 
 
@@ -141,11 +143,6 @@ namespace MFM
       SetAlert(us, 1);
     }
     
-    void Cooldown(T& us) const
-    {
-      SetCooldownTimer(us, (1 << COOLDOWN_TIMER_LEN) - 1);
-    }
-
 
     u32 GetPathID(const T& us) const
     {
@@ -187,6 +184,82 @@ namespace MFM
       AFNextIndex::Write(this->GetBits(us), idx);
     }
 
+
+    u32 GetUpstreamMessage(const T& us) const
+    {
+      return AFUpstreamMessage::Read(this->GetBits(us));
+    }
+
+    void SetUpstreamMessage(T& us, const u32 idx) const
+    {
+      AFUpstreamMessage::Write(this->GetBits(us), idx);
+    }
+
+
+    u32 GetUpstreamStrength(const T& us) const
+    {
+      return AFUpstreamStrength::Read(this->GetBits(us));
+    }
+
+    void SetUpstreamStrength(T& us, const u32 idx) const
+    {
+      AFUpstreamStrength::Write(this->GetBits(us), idx);
+    }
+
+
+    u32 GetUpstreamCooldown(const T& us) const
+    {
+      return AFUpstreamCooldown::Read(this->GetBits(us));
+    }
+
+    void SetUpstreamCooldown(T& us, const u32 idx) const
+    {
+      AFUpstreamCooldown::Write(this->GetBits(us), idx);
+    }
+
+
+    u32 GetDownstreamMessage(const T& us) const
+    {
+      return AFDownstreamMessage::Read(this->GetBits(us));
+    }
+
+    void SetDownstreamMessage(T& us, const u32 idx) const
+    {
+      AFDownstreamMessage::Write(this->GetBits(us), idx);
+    }
+
+
+    u32 GetDownstreamStrength(const T& us) const
+    {
+      return AFDownstreamStrength::Read(this->GetBits(us));
+    }
+
+    void SetDownstreamStrength(T& us, const u32 idx) const
+    {
+      AFDownstreamStrength::Write(this->GetBits(us), idx);
+    }
+
+
+    u32 GetDownstreamCooldown(const T& us) const
+    {
+      return AFDownstreamCooldown::Read(this->GetBits(us));
+    }
+
+    void SetDownstreamCooldown(T& us, const u32 idx) const
+    {
+      AFDownstreamCooldown::Write(this->GetBits(us), idx);
+    }
+    
+    u32 GetTrafficDir(const T& us) const
+    {
+      return AFTrafficDir::Read(this->GetBits(us));
+    }
+
+    void SetTrafficDir(T& us, const u32 idx) const
+    {
+      AFTrafficDir::Write(this->GetBits(us), idx);
+    }
+
     T GetMutableAtom(const T& oldMe) const
     {
       T me = oldMe;
@@ -204,21 +277,10 @@ namespace MFM
       const T& me = window.GetCenterAtom();
       //LOG.Debug("Examining BC:%d; Pred=%d, Succ=%d, timer=%d", GetIndex(me), GetPrevIndex(me), GetNextIndex(me), GetCooldownTimer(me));
 
-      if(!IsAlert(me)){
-        T mutableMe = GetMutableAtom(window.GetCenterAtom());
-        DecrementCooldown(mutableMe);
-        window.SetCenterAtom(mutableMe);
-      }
-
-      if(!IsCooldown(me))
-      {
-        window.SetCenterAtom(Element_Empty<CC>::THE_INSTANCE.GetDefaultAtom());
-      }
-      else
-      {
         MDist<R>& md = MDist<R>::get();
         SPoint pred, succ;
         bool fP = false, fS = false;
+
 
         //Find predecessor and successor
         for(u32 i = md.GetFirstIndex(1); i <= md.GetLastIndex(R); i++)
@@ -278,7 +340,7 @@ namespace MFM
           }
         }
       }
-    }
+    
   };
 }
 

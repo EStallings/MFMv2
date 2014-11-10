@@ -64,17 +64,17 @@ namespace MFM
     }
 
     Element_Breadcrumb_Red() :
-      Abstract_Element_Breadcrumb<CC>(MFM_UUID_FOR("BreadcrumbRed", 1))
+      Abstract_Element_Breadcrumb<CC>(MFM_UUID_FOR("Breadcrumb", 1))
     {
       Element<CC>::SetAtomicSymbol("Bc");
-      Element<CC>::SetName("BreadcrumbRed");
+      Element<CC>::SetName("Breadcrumb");
     }
 
     virtual u32 LocalPhysicsColor(const T& atom, u32 selector) const
     {
       if(Abstract_Element_Breadcrumb<CC>::IsAlert(atom))
       {
-	return 0xff7f7f;
+	return 0x996600;
       }
       else
       {
@@ -84,7 +84,7 @@ namespace MFM
 
     virtual u32 DefaultPhysicsColor() const
     {
-      return 0xffcca0a0;
+      return 0x996666;
     }
 
     // Non-diffusable
