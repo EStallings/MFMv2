@@ -59,10 +59,10 @@ namespace MFM
     }
 
     Element_Scout_Red()
-      : Abstract_Element_Scout<CC>(MFM_UUID_FOR("ScoutXBRed", WAR_VERSION))
+      : Abstract_Element_Scout<CC>(MFM_UUID_FOR("Scout", WAR_VERSION))
     {
       Element<CC>::SetAtomicSymbol("Sc");
-      Element<CC>::SetName("Red Scout");
+      Element<CC>::SetName("Scout");
     }
 
     virtual u32 DefaultPhysicsColor() const
