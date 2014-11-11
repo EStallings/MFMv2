@@ -60,6 +60,9 @@ namespace MFM
     {
       static T defaultAtom(TYPE(),0,0,0);
 
+      Abstract_Element_Breadcrumb<CC>::
+      SetActive(defaultAtom, (1<<Abstract_Element_Breadcrumb<CC>::ACTIVE_TIMER_LEN)-1);
+
       return defaultAtom;
     }
 
@@ -72,7 +75,7 @@ namespace MFM
 
     virtual u32 LocalPhysicsColor(const T& atom, u32 selector) const
     {
-      if(Abstract_Element_Breadcrumb<CC>::IsAlert(atom))
+      if(Abstract_Element_Breadcrumb<CC>::IsActive(atom))
       {
 	return 0x996600;
       }
@@ -98,6 +101,8 @@ namespace MFM
       return TYPE();
     }
 
+    virtual u32 GetMyTowerType() const;
+
     virtual u32 PercentMovable(const T& you,
                                const T& me, const SPoint& offset) const
     {
@@ -109,5 +114,5 @@ namespace MFM
   Element_Breadcrumb_Red<CC> Element_Breadcrumb_Red<CC>::THE_INSTANCE;
 
 }
-
+#include "Element_Breadcrumb_Red.tcc"
 #endif /* ELEMENT_BREADCRUMB_RED_H */

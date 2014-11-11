@@ -34,7 +34,6 @@
 #include "itype.h"
 #include "P3Atom.h"
 #include "Abstract_Element_Scout.h"
-#include "Element_Breadcrumb_Red.h"
 
 namespace MFM
 {
@@ -89,10 +88,7 @@ namespace MFM
       return defaultAtom;
     }
 
-    virtual const Abstract_Element_Breadcrumb<CC>& GetBreadcrumbElement() const
-    {
-      return Element_Breadcrumb_Red<CC>::THE_INSTANCE;
-    }
+    virtual const Abstract_Element_Breadcrumb<CC>& GetBreadcrumbElement() const;
 
     virtual const bool IsAtomInteresting(EventWindow<CC>& window, const T& atom) const;
 

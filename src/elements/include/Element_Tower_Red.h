@@ -74,9 +74,6 @@ namespace MFM
       static T defaultAtom(TYPE(),0,0,0);
 
       Abstract_Element_Tower<CC>::
-	    SetCurrentHealth(defaultAtom, (u32) Abstract_Element_Tower<CC>::m_defaultHealth.GetValue());
-
-      Abstract_Element_Tower<CC>::
       SetID(defaultAtom, rand() % (1<<Abstract_Element_Tower<CC>::ID_LEN));
 
       return defaultAtom;
@@ -84,8 +81,8 @@ namespace MFM
 
     const typename CC::ATOM_TYPE& GetDefaultScout() const;
     const typename CC::ATOM_TYPE& GetDefaultColonist() const;
-    const typename CC::ATOM_TYPE& GetDefaultSoldier() const;
-
+    virtual void Behavior(EventWindow<CC>& window) const;
+    
     virtual const char* GetDescription() const
     {
       return "Red Tower element.";

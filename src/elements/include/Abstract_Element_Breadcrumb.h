@@ -33,7 +33,8 @@
 #include "ElementTable.h"
 #include "itype.h"
 #include "P3Atom.h"
-#include "Element_Data.h"
+#include "Element_Empty.h"
+#include "Element_Res.h"
 
 namespace MFM
 {
@@ -64,29 +65,26 @@ namespace MFM
       NEXT_INDEX_POS = PREV_INDEX_POS + PREV_INDEX_LEN,
       NEXT_INDEX_LEN = 10,
 
-      ALERT_TIMER_POS = NEXT_INDEX_POS + NEXT_INDEX_LEN,
-      ALERT_TIMER_LEN = 1,
+      ACTIVE_TIMER_POS = NEXT_INDEX_POS + NEXT_INDEX_LEN,
+      ACTIVE_TIMER_LEN = 5,
 
-      UPSTREAM_MESSAGE_POS = ALERT_TIMER_POS + ALERT_TIMER_LEN,
-      UPSTREAM_MESSAGE_LEN = 8,
+      UPSTREAM_LOCAL_DEMAND_POS = ACTIVE_TIMER_POS + ACTIVE_TIMER_LEN,
+      UPSTREAM_LOCAL_DEMAND_LEN = 4,
 
-      DOWNSTREAM_MESSAGE_POS = UPSTREAM_MESSAGE_POS + UPSTREAM_MESSAGE_LEN, 
-      DOWNSTREAM_MESSAGE_LEN = 8,
+      DOWNSTREAM_LOCAL_DEMAND_POS = UPSTREAM_LOCAL_DEMAND_POS + UPSTREAM_LOCAL_DEMAND_LEN, 
+      DOWNSTREAM_LOCAL_DEMAND_LEN = 4,
 
-      UPSTREAM_STRENGTH_POS = DOWNSTREAM_MESSAGE_POS + DOWNSTREAM_MESSAGE_LEN,
-      UPSTREAM_STRENGTH_LEN = 4,
+      UPSTREAM_DEMAND_POS = DOWNSTREAM_LOCAL_DEMAND_POS + DOWNSTREAM_LOCAL_DEMAND_LEN,
+      UPSTREAM_DEMAND_LEN = 4,
 
-      DOWNSTREAM_STRENGTH_POS = UPSTREAM_STRENGTH_POS + UPSTREAM_STRENGTH_LEN, 
-      DOWNSTREAM_STRENGTH_LEN = 4,
+      DOWNSTREAM_DEMAND_POS = UPSTREAM_DEMAND_POS + UPSTREAM_DEMAND_LEN, 
+      DOWNSTREAM_DEMAND_LEN = 4,
 
-      UPSTREAM_COOLDOWN_POS = DOWNSTREAM_STRENGTH_POS + DOWNSTREAM_STRENGTH_LEN,
-      UPSTREAM_COOLDOWN_LEN = 4,
+      TRAFFIC_DIR_POS = DOWNSTREAM_DEMAND_POS + DOWNSTREAM_DEMAND_LEN,
+      TRAFFIC_DIR_LEN = 1,
 
-      DOWNSTREAM_COOLDOWN_POS = UPSTREAM_COOLDOWN_POS + UPSTREAM_COOLDOWN_LEN, 
-      DOWNSTREAM_COOLDOWN_LEN = 4,
-
-      TRAFFIC_DIR_POS = DOWNSTREAM_COOLDOWN_POS + DOWNSTREAM_COOLDOWN_LEN,
-      TRAFFIC_DIR_LEN = 1
+      IS_ENDPOINT_POS = TRAFFIC_DIR_POS + TRAFFIC_DIR_LEN,
+      IS_ENDPOINT_LEN = 1
 
     };
 
@@ -95,33 +93,15 @@ namespace MFM
     typedef BitField<BitVector<BITS>, INDEX_LEN, INDEX_POS> AFIndex;
     typedef BitField<BitVector<BITS>, PREV_INDEX_LEN, PREV_INDEX_POS> AFPrevIndex;
     typedef BitField<BitVector<BITS>, NEXT_INDEX_LEN, NEXT_INDEX_POS> AFNextIndex;
-    typedef BitField<BitVector<BITS>, ALERT_TIMER_LEN, ALERT_TIMER_POS> AFAlertTimer;
-
-    typedef BitField<BitVector<BITS>, UPSTREAM_MESSAGE_LEN, UPSTREAM_MESSAGE_POS> AFUpstreamMessage;
-    typedef BitField<BitVector<BITS>, DOWNSTREAM_MESSAGE_LEN, DOWNSTREAM_MESSAGE_POS> AFDownstreamMessage;
-    typedef BitField<BitVector<BITS>, UPSTREAM_STRENGTH_LEN, UPSTREAM_STRENGTH_POS> AFUpstreamStrength;
-    typedef BitField<BitVector<BITS>, DOWNSTREAM_STRENGTH_LEN, DOWNSTREAM_STRENGTH_POS> AFDownstreamStrength;
-    typedef BitField<BitVector<BITS>, UPSTREAM_COOLDOWN_LEN, UPSTREAM_COOLDOWN_POS> AFUpstreamCooldown;
-    typedef BitField<BitVector<BITS>, DOWNSTREAM_COOLDOWN_LEN, DOWNSTREAM_COOLDOWN_POS> AFDownstreamCooldown;
-
+    typedef BitField<BitVector<BITS>, ACTIVE_TIMER_LEN, ACTIVE_TIMER_POS> AFActiveTimer;
+    typedef BitField<BitVector<BITS>, UPSTREAM_LOCAL_DEMAND_LEN, UPSTREAM_LOCAL_DEMAND_POS> AFUpstreamLocalDemand;
+    typedef BitField<BitVector<BITS>, DOWNSTREAM_LOCAL_DEMAND_LEN, DOWNSTREAM_LOCAL_DEMAND_POS> AFDownstreamLocalDemand;
+    typedef BitField<BitVector<BITS>, UPSTREAM_DEMAND_LEN, UPSTREAM_DEMAND_POS> AFUpstreamDemand;
+    typedef BitField<BitVector<BITS>, DOWNSTREAM_DEMAND_LEN, DOWNSTREAM_DEMAND_POS> AFDownstreamDemand;
     typedef BitField<BitVector<BITS>, TRAFFIC_DIR_LEN, TRAFFIC_DIR_POS> AFTrafficDir;
 
-
-   private:
-
-    u32 GetAlert(const T& us) const
-    {
-      return AFAlertTimer::Read(this->GetBits(us));
-    }
-
-    void SetAlert(T& us, const u32 age) const
-    {
-      AFAlertTimer::Write(this->GetBits(us), age);
-    }
-
-   protected:
-
     virtual u32 GetMyBreadcrumbType() const = 0;
+    virtual u32 GetMyTowerType() const = 0;
 
     
 
@@ -129,18 +109,20 @@ namespace MFM
     Abstract_Element_Breadcrumb(const UUID & uuid) : Element<CC>(uuid)
     { }
 
-
-    bool IsAlert(const T& us) const
+    u32 GetActive(const T& us) const
     {
-      return GetAlert(us) > 0;
+      return AFActiveTimer::Read(this->GetBits(us));
+    }
+
+    void SetActive(T& us, const u32 age) const
+    {
+      AFActiveTimer::Write(this->GetBits(us), age);
+    }
+    bool IsActive(const T& us) const
+    {
+      return GetActive(us) > 0;
     }
     
-    void Alert(T& us) const
-    {
-      SetAlert(us, 1);
-    }
-    
-
     u32 GetPathID(const T& us) const
     {
       return AFPathID::Read(this->GetBits(us));
@@ -181,72 +163,47 @@ namespace MFM
       AFNextIndex::Write(this->GetBits(us), idx);
     }
 
-
-    u32 GetUpstreamMessage(const T& us) const
+    u32 GetUpstreamLocalDemand(const T& us) const
     {
-      return AFUpstreamMessage::Read(this->GetBits(us));
+      return AFUpstreamLocalDemand::Read(this->GetBits(us));
     }
 
-    void SetUpstreamMessage(T& us, const u32 idx) const
+    void SetUpstreamLocalDemand(T& us, const u32 idx) const
     {
-      AFUpstreamMessage::Write(this->GetBits(us), idx);
+      AFUpstreamLocalDemand::Write(this->GetBits(us), idx);
     }
 
-
-    u32 GetUpstreamStrength(const T& us) const
+    u32 GetDownstreamLocalDemand(const T& us) const
     {
-      return AFUpstreamStrength::Read(this->GetBits(us));
+      return AFDownstreamLocalDemand::Read(this->GetBits(us));
     }
 
-    void SetUpstreamStrength(T& us, const u32 idx) const
+    void SetDownstreamLocalDemand(T& us, const u32 idx) const
     {
-      AFUpstreamStrength::Write(this->GetBits(us), idx);
-    }
-
-
-    u32 GetUpstreamCooldown(const T& us) const
-    {
-      return AFUpstreamCooldown::Read(this->GetBits(us));
-    }
-
-    void SetUpstreamCooldown(T& us, const u32 idx) const
-    {
-      AFUpstreamCooldown::Write(this->GetBits(us), idx);
-    }
-
-
-    u32 GetDownstreamMessage(const T& us) const
-    {
-      return AFDownstreamMessage::Read(this->GetBits(us));
-    }
-
-    void SetDownstreamMessage(T& us, const u32 idx) const
-    {
-      AFDownstreamMessage::Write(this->GetBits(us), idx);
-    }
-
-
-    u32 GetDownstreamStrength(const T& us) const
-    {
-      return AFDownstreamStrength::Read(this->GetBits(us));
-    }
-
-    void SetDownstreamStrength(T& us, const u32 idx) const
-    {
-      AFDownstreamStrength::Write(this->GetBits(us), idx);
-    }
-
-
-    u32 GetDownstreamCooldown(const T& us) const
-    {
-      return AFDownstreamCooldown::Read(this->GetBits(us));
-    }
-
-    void SetDownstreamCooldown(T& us, const u32 idx) const
-    {
-      AFDownstreamCooldown::Write(this->GetBits(us), idx);
+      AFDownstreamLocalDemand::Write(this->GetBits(us), idx);
     }
     
+    u32 GetUpstreamDemand(const T& us) const
+    {
+      return AFUpstreamDemand::Read(this->GetBits(us));
+    }
+
+    void SetUpstreamDemand(T& us, const u32 idx) const
+    {
+      AFUpstreamDemand::Write(this->GetBits(us), idx);
+    }
+
+    u32 GetDownstreamDemand(const T& us) const
+    {
+      return AFDownstreamDemand::Read(this->GetBits(us));
+    }
+
+    void SetDownstreamDemand(T& us, const u32 idx) const
+    {
+      AFDownstreamDemand::Write(this->GetBits(us), idx);
+    }
+    
+
     u32 GetTrafficDir(const T& us) const
     {
       return AFTrafficDir::Read(this->GetBits(us));
@@ -264,79 +221,177 @@ namespace MFM
       return me;
     }
 
+    virtual u32 Diffusability(EventWindow<CC> & ew, SPoint nowAt, SPoint maybeAt) const
+    {
+      return nowAt.Equals(maybeAt)?Element<CC>::COMPLETE_DIFFUSABILITY:0;
+    }
+
     virtual u32 PercentMovable(const T& you,
                                const T& me, const SPoint& offset) const
     {
       return 0;
     }
+
     virtual void Behavior(EventWindow<CC>& window) const
     {
       const T& me = window.GetCenterAtom();
-      //LOG.Debug("Examining BC:%d; Pred=%d, Succ=%d, timer=%d", GetIndex(me), GetPrevIndex(me), GetNextIndex(me), GetCooldownTimer(me));
+      Random & random = window.GetRandom();
 
-        MDist<R>& md = MDist<R>::get();
-        SPoint pred, succ;
-        bool fP = false, fS = false;
+      //Delayed start to behavior to ensure everything gets linked!
+      if(GetActive(me) > 0){
+        T mutableMe = GetMutableAtom(window.GetCenterAtom());
+        SetActive(mutableMe, GetActive(me) - 1);
+        window.SetCenterAtom(mutableMe);
+        return;
+      }
+
+      //LOG.Debug("Examining BC:%d; Pred=%d, Succ=%d, timer=%d", GetIndex(me), GetPrevIndex(me), GetNextIndex(me), GetActive(me));
+
+      MDist<R>& md = MDist<R>::get();
+      SPoint pred, succ;
+      bool fP = false, fS = false;
+
+      u32 numTowers = 0;
+      SPoint towerPos;
+      bool fT = false;
+
+      u32 resType = Element_Res<CC>::THE_INSTANCE.GetType();
+      SPoint resPos;
+      u32 numRes = 0;
+      bool fR = false;
 
 
-        //Find predecessor and successor
-        for(u32 i = md.GetFirstIndex(1); i <= md.GetLastIndex(R); i++)
+      //Find predecessor and successor, and a random valid tower if possible
+      for(u32 i = md.GetFirstIndex(1); i <= md.GetLastIndex(R); i++)
+      {
+        SPoint pt = md.GetPoint(i);
+
+        if(window.GetRelativeAtom(pt).GetType() == GetMyBreadcrumbType())
         {
-          SPoint pt = md.GetPoint(i);
-
-          if(window.GetRelativeAtom(pt).GetType() ==
-             GetMyBreadcrumbType())
+          if(GetIndex(window.GetRelativeAtom(pt)) == GetPrevIndex(me) && GetPathID(window.GetRelativeAtom(pt)) == GetPathID(me))
           {
-            if(GetIndex(window.GetRelativeAtom(pt)) == GetPrevIndex(me) && GetPathID(window.GetRelativeAtom(pt)) == GetPathID(me))
-            {
-              pred = pt;
-              fP = true;
-            }
-            else if(GetIndex(window.GetRelativeAtom(pt)) == GetNextIndex(me) && GetPathID(window.GetRelativeAtom(pt)) == GetPathID(me))
-            {
-              succ = pt;
-              fS = true;
-            }
+            pred = pt;
+            fP = true;
+          }
+          else if(GetIndex(window.GetRelativeAtom(pt)) == GetNextIndex(me) && GetPathID(window.GetRelativeAtom(pt)) == GetPathID(me))
+          {
+            succ = pt;
+            fS = true;
           }
         }
-
-        //Become alert if neighbor is alert
-        //if((!IsAlert(me)) && ((fP && IsAlert(window.GetRelativeAtom(pred))) || (fS && IsAlert(window.GetRelativeAtom(succ)))))
-        if((!IsAlert(me)) && (fS && IsAlert(window.GetRelativeAtom(succ))))
+        else if(window.GetRelativeAtom(pt).GetType() == GetMyTowerType())
         {
-          T mutableMe = GetMutableAtom(window.GetCenterAtom());
-          Alert(mutableMe);
-          window.SetCenterAtom(mutableMe);
-        }
-        //Move to average position
-        if(fP && fS){
-          if((pred-succ).GetManhattanLength() < R){
-
-            //LOG.Debug("Deleting BC:%d; Pred=%d, Succ=%d", GetIndex(me), GetPrevIndex(me), GetNextIndex(me));
-
-            T predAtom = GetMutableAtom(window.GetRelativeAtom(pred));
-            SetNextIndex(predAtom, GetNextIndex(me));
-            window.SetRelativeAtom(pred, predAtom);
-
-            T succAtom = GetMutableAtom(window.GetRelativeAtom(succ));
-            SetPrevIndex(succAtom, GetPrevIndex(me));
-            window.SetRelativeAtom(succ, succAtom);
-
-            window.SetCenterAtom(Element_Empty<CC>::THE_INSTANCE.GetDefaultAtom());
+          numTowers++;
+          fT = true;
+          if(random.OneIn(numTowers)){
+            towerPos = pt;
           }
-          else{
-            u32 Xpoint = pred.GetX() + succ.GetX();
-            Xpoint = (abs(Xpoint) > 1) ? Xpoint/2 : Xpoint;
-
-            u32 Ypoint = pred.GetY() + succ.GetY();
-            Ypoint = (abs(Ypoint) > 1) ? Ypoint/2 : Ypoint;
-
-            SPoint vec = SPoint(Xpoint,Ypoint);
-            if(window.IsLiveSite(vec) && window.GetRelativeAtom(vec).GetType() == Element_Empty<CC>::THE_INSTANCE.GetType())
-              window.SwapAtoms(vec, SPoint(0,0));
+        }
+        else if(window.GetRelativeAtom(pt).GetType() == resType)
+        {
+          numRes++;
+          fR = true;
+          if(random.OneIn(numRes)){
+            resPos = pt;
           }
         }
       }
+
+      //if disconnected, die
+      if(!(fP && fS) && !(fT && (fS || fP))) {
+        window.SetCenterAtom(Element_Empty<CC>::THE_INSTANCE.GetDefaultAtom());
+        return;
+      }
+
+      //logic if we need to interact with a tower
+      if(!fP || !fS){
+        if(!fP){
+          pred = towerPos; //for positioning
+
+        }
+        else if(!fS){
+          succ = towerPos; //for positioning
+
+        }
+      }
+
+      //Otherwise, move res
+      else if(fR){
+        SPoint goal = succ;
+        if(GetTrafficDir(me) == 1)
+          goal = pred;
+        u32 minDist = 16;
+        SPoint minPos = resPos;
+        for(u32 i = md.GetFirstIndex(1); i <= md.GetLastIndex(R); i++)
+        {
+          SPoint pt = md.GetPoint(i);
+          if(window.GetRelativeAtom(pt).GetType() == Element_Empty<CC>::THE_INSTANCE.GetType()){
+            u32 dist = (pt-goal).GetManhattanLength();
+            if(dist < minDist){
+              minPos = pt;
+            }
+            //LOG.Debug("Moving res a distance of %d from goal!", dist);
+          }
+        }
+        window.SwapAtoms(minPos, resPos);
+      }
+
+      //get pred's data
+      if(fP){
+        T mutableMe = GetMutableAtom(window.GetCenterAtom());
+        SetDownstreamLocalDemand(mutableMe, GetDownstreamLocalDemand(window.GetRelativeAtom(pred)));
+        SetDownstreamDemand(mutableMe, GetDownstreamDemand(window.GetRelativeAtom(pred)));
+        window.SetCenterAtom(mutableMe);
+      }
+
+      //get succ's data
+      if(fS){
+        T mutableMe = GetMutableAtom(window.GetCenterAtom());
+        SetUpstreamLocalDemand(mutableMe, GetUpstreamLocalDemand(window.GetRelativeAtom(pred)));
+        SetUpstreamDemand(mutableMe, GetUpstreamDemand(window.GetRelativeAtom(pred)));
+        window.SetCenterAtom(mutableMe);
+      }
+
+      //modify traffic direction
+      if(GetUpstreamLocalDemand(me) > GetDownstreamLocalDemand(me) && GetTrafficDir(me) == 0){
+        T mutableMe = GetMutableAtom(window.GetCenterAtom());
+        SetTrafficDir(mutableMe, 1);
+        window.SetCenterAtom(mutableMe);
+      }
+
+      else if(GetUpstreamLocalDemand(me) < GetDownstreamLocalDemand(me) && GetTrafficDir(me) == 1){
+        T mutableMe = GetMutableAtom(window.GetCenterAtom());
+        SetTrafficDir(mutableMe, 0);
+        window.SetCenterAtom(mutableMe);
+      }
+      //Move to average position
+      if((pred-succ).GetManhattanLength() < R){
+
+        //LOG.Debug("Deleting BC:%d; Pred=%d, Succ=%d", GetIndex(me), GetPrevIndex(me), GetNextIndex(me));
+
+        T predAtom = GetMutableAtom(window.GetRelativeAtom(pred));
+        SetNextIndex(predAtom, GetNextIndex(me));
+        window.SetRelativeAtom(pred, predAtom);
+
+        T succAtom = GetMutableAtom(window.GetRelativeAtom(succ));
+        SetPrevIndex(succAtom, GetPrevIndex(me));
+        window.SetRelativeAtom(succ, succAtom);
+
+        window.SetCenterAtom(Element_Empty<CC>::THE_INSTANCE.GetDefaultAtom());
+      }
+      else{
+        u32 Xpoint = pred.GetX() + succ.GetX();
+        Xpoint = (abs(Xpoint) > 1) ? Xpoint/2 : Xpoint;
+
+        u32 Ypoint = pred.GetY() + succ.GetY();
+        Ypoint = (abs(Ypoint) > 1) ? Ypoint/2 : Ypoint;
+
+        SPoint vec = SPoint(Xpoint,Ypoint);
+        if(window.IsLiveSite(vec) && window.GetRelativeAtom(vec).GetType() == Element_Empty<CC>::THE_INSTANCE.GetType())
+          window.SwapAtoms(vec, SPoint(0,0));
+      }
+    }
+    
     
   };
 }

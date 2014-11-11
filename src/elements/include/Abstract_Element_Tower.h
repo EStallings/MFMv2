@@ -48,10 +48,9 @@ namespace MFM
 
   protected:
 
-    ElementParameterS32<CC> m_defaultHealth;
-    ElementParameterS32<CC> m_soldierSpawnChance;
     ElementParameterS32<CC> m_colonistSpawnChance;
     ElementParameterS32<CC> m_scoutSpawnChance;
+    ElementParameterS32<CC> m_resSpawnChance;
 
     enum
     {
@@ -60,14 +59,22 @@ namespace MFM
       //////
       // Element state fields
 
-      CURRENT_HEALTH_POS = P3Atom<P>::P3_STATE_BITS_POS,
-      CURRENT_HEALTH_LEN = 10,
+      CURRENT_DEMAND_POS = P3Atom<P>::P3_STATE_BITS_POS,
+      CURRENT_DEMAND_LEN = 4,
 
-      ID_POS = CURRENT_HEALTH_POS + CURRENT_HEALTH_LEN,
+      LOCAL_DEMAND_POS = CURRENT_DEMAND_POS + CURRENT_DEMAND_LEN,
+      LOCAL_DEMAND_LEN = 4,
+
+      NUM_CONNECTIONS_POS = LOCAL_DEMAND_POS + LOCAL_DEMAND_LEN,
+      NUM_CONNECTIONS_LEN = 3,
+
+      ID_POS = NUM_CONNECTIONS_POS + NUM_CONNECTIONS_LEN,
       ID_LEN = 10
     };
 
-    typedef BitField<BitVector<BITS>, CURRENT_HEALTH_LEN, CURRENT_HEALTH_POS> AFCurrentHealth;
+    typedef BitField<BitVector<BITS>, CURRENT_DEMAND_LEN, CURRENT_DEMAND_POS> AFCurrentDemand;
+    typedef BitField<BitVector<BITS>, LOCAL_DEMAND_LEN, LOCAL_DEMAND_POS> AFLocalDemand;
+    typedef BitField<BitVector<BITS>, NUM_CONNECTIONS_LEN, NUM_CONNECTIONS_POS> AFNumConnections;
     typedef BitField<BitVector<BITS>, ID_LEN, ID_POS> AFID;
 
 
@@ -75,14 +82,12 @@ namespace MFM
 
     Abstract_Element_Tower(UUID u)
       : Element<CC>(u),
-        m_defaultHealth(this, "defaultHealth", "Default Health",
-                  "This is the health the tower will start with.", 1, 10, 20, 1),
-        m_soldierSpawnChance(this, "soldierSpawnChance", "Soldier Spawn Chance",
-                  "This is the chance of spawning a soldier in a given tick.", 1, 80, 1000, 10),
         m_colonistSpawnChance(this, "colonistSpawnChance", "Colonist Spawn Chance",
                   "This is the chance of spawning a colonist in a given tick.", 500, 5000, 10000, 500),
         m_scoutSpawnChance(this, "scoutSpawnChance", "Scout Spawn Chance",
-                  "This is the chance of spawning a scout in a given tick.", 200, 1000, 10000, 100)
+                  "This is the chance of spawning a scout in a given tick.", 200, 1000, 10000, 100),
+        m_resSpawnChance(this, "resSpawnChance", "Res Spawn Chance",
+                  "This is the chance of res spawning in a given tick.", 1, 5, 10, 1)
     {}
 
     u32 GetID(const T& us) const
@@ -95,14 +100,24 @@ namespace MFM
       AFID::Write(this->GetBits(us), id);
     }
 
-    u32 GetCurrentHealth(const T& us) const
+    u32 GetCurrentDemand(const T& us) const
     {
-      return AFCurrentHealth::Read(this->GetBits(us));
+      return AFCurrentDemand::Read(this->GetBits(us));
     }
 
-    void SetCurrentHealth(T& us, const u32 health) const
+    void SetCurrentDemand(T& us, const u32 demand) const
     {
-      AFCurrentHealth::Write(this->GetBits(us), health);
+      AFCurrentDemand::Write(this->GetBits(us), demand);
+    }
+
+    u32 GetLocalDemand(const T& us) const
+    {
+      return AFLocalDemand::Read(this->GetBits(us));
+    }
+
+    void SetLocalDemand(T& us, const u32 demand) const
+    {
+      AFLocalDemand::Write(this->GetBits(us), demand);
     }
 
     T GetMutableAtom(const T& oldMe) const
@@ -112,19 +127,21 @@ namespace MFM
       return me;
     }
 
+    virtual u32 Diffusability(EventWindow<CC> & ew, SPoint nowAt, SPoint maybeAt) const
+    {
+      return nowAt.Equals(maybeAt)?Element<CC>::COMPLETE_DIFFUSABILITY:0;
+    }
+
     virtual u32 PercentMovable(const T& you,
                                const T& me, const SPoint& offset) const
     {
       return 0;
     }
 
-    virtual void Behavior(EventWindow<CC>& window) const;
 
     virtual const typename CC::ATOM_TYPE& GetDefaultScout() const = 0;
-    virtual const typename CC::ATOM_TYPE& GetDefaultSoldier() const = 0;
     virtual const typename CC::ATOM_TYPE& GetDefaultColonist() const = 0;
 
-   private:
     void PlaceAtomRandomly(EventWindow<CC>& window, const T& atom) const
     {
         SPoint location;

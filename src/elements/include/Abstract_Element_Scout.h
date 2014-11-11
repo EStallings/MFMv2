@@ -150,10 +150,15 @@ namespace MFM
       AFCurrentBreadcrumbIndex::Write(this->GetBits(us), i);
     }
 
+    virtual u32 Diffusability(EventWindow<CC> & ew, SPoint nowAt, SPoint maybeAt) const
+    {
+      return nowAt.Equals(maybeAt)?Element<CC>::COMPLETE_DIFFUSABILITY:0;
+    }
+
     virtual u32 PercentMovable(const T& you,
                                const T& me, const SPoint& offset) const
     {
-      return 100;
+      return 0;
     }
 
     T GetMutableAtom(const T& oldMe) const
@@ -197,7 +202,6 @@ namespace MFM
             T bc = bcClass.GetMutableAtom(bcClass.GetDefaultAtom());
             bcClass.SetIndex(bc, GetCurrentBreadcrumbIndex(self));
             bcClass.SetPrevIndex(bc, GetCurrentBreadcrumbIndex(self)-1);
-            bcClass.Alert(bc);
             window.SetCenterAtom(bc);
             return;
           }
