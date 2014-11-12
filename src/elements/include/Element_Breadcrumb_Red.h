@@ -96,18 +96,13 @@ namespace MFM
       return nowAt.Equals(maybeAt)?Element<CC>::COMPLETE_DIFFUSABILITY:0;
     }
 
-    virtual u32 GetMyBreadcrumbType() const
-    {
-      return TYPE();
-    }
-
-    virtual u32 GetMyTowerType() const;
-
     virtual u32 PercentMovable(const T& you,
                                const T& me, const SPoint& offset) const
     {
       return 0;
     }
+
+    virtual void Behavior(EventWindow<CC>& window) const;
   };
 
   template <class CC>

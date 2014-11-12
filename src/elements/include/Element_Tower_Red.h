@@ -76,6 +76,11 @@ namespace MFM
       Abstract_Element_Tower<CC>::
       SetID(defaultAtom, rand() % (1<<Abstract_Element_Tower<CC>::ID_LEN));
 
+      Abstract_Element_Tower<CC>::
+      SetCurrentDemand(defaultAtom, rand() % (1<<Abstract_Element_Tower<CC>::CURRENT_DEMAND_LEN));
+
+      
+
       return defaultAtom;
     }
 
