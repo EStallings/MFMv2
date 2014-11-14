@@ -47,11 +47,12 @@ namespace MFM
 
     LOG.Debug("Village %d ate %d res, demand before = %d", GetID(self), numEaten, resDemand);
     
-    if(rand.OneIn(Abstract_Element_Tower<CC>::m_scoutSpawnChance.GetValue()))
+    if(rand.OneIn(Abstract_Element_Tower<CC>::m_scoutSpawnChance.GetValue()) && GetNumConnections(self) < 4)
     {
       const T& scout = Element_Scout_Red<CC>::THE_INSTANCE.GetDefaultAtom();
-      //T mutableScout = Abstract_Element_Scout<CC>::GetMutableAtom(scout);
-      PlaceAtomRandomly(window, scout);
+      T mutableScout = Element_Scout_Red<CC>::THE_INSTANCE.GetMutableAtom(scout);
+      Element_Scout_Red<CC>::THE_INSTANCE.SetTowerID(mutableScout, GetID(self));
+      PlaceAtomRandomly(window, mutableScout);
     }
 
     if(rand.OneIn(Abstract_Element_Tower<CC>::m_resSpawnChance.GetValue()))
@@ -61,6 +62,7 @@ namespace MFM
 
     //TODO Adjust supply and demand based on nearby breadcrumbs
     u32 localDemand = 0;
+    u32 numConnections = 0;
     for(u32 i = md.GetFirstIndex(1); i <= md.GetLastIndex(R); i++)
     {
       SPoint pt = md.GetPoint(i);
@@ -72,22 +74,20 @@ namespace MFM
             Element_Breadcrumb_Red<CC>::THE_INSTANCE.GetUpstreamDemand(window.GetRelativeAtom(pt))) ;
 
         if(Element_Breadcrumb_Red<CC>::THE_INSTANCE.GetIsEndpoint(window.GetRelativeAtom(pt))){
-
+          numConnections++;
           if(Element_Breadcrumb_Red<CC>::THE_INSTANCE.GetEndpointSwitch(window.GetRelativeAtom(pt)) == 0){
-            localDemand += Element_Breadcrumb_Red<CC>::THE_INSTANCE.GetDownstreamDemand(window.GetRelativeAtom(pt));
+            localDemand += Element_Breadcrumb_Red<CC>::THE_INSTANCE.GetUpstreamDemand(window.GetRelativeAtom(pt));
           }
           else{
-            localDemand += Element_Breadcrumb_Red<CC>::THE_INSTANCE.GetUpstreamDemand(window.GetRelativeAtom(pt)); 
+            localDemand += Element_Breadcrumb_Red<CC>::THE_INSTANCE.GetDownstreamDemand(window.GetRelativeAtom(pt)); 
           }
         }
       }
     }
-
-    if(localDemand > 0){
-      LOG.Debug("Local demand being seen by village %d: %d", GetID(self), localDemand);
-    }
+    
     T mutableMe = GetMutableAtom(window.GetCenterAtom());
     SetLocalDemand(mutableMe, GetCurrentDemand(self) + localDemand);
+    SetNumConnections(mutableMe, numConnections);
     window.SetCenterAtom(mutableMe);
 
     //disabled for now

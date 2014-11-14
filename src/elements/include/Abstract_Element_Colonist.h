@@ -35,6 +35,7 @@
 #include "P3Atom.h"
 #include "Element_Empty.h"
 #include "Abstract_Element_Tower.h"
+#include "Abstract_Element_Breadcrumb.h"
 
 namespace MFM
 {
@@ -73,14 +74,23 @@ namespace MFM
       TOWER_CHANCE_POS = CURRENT_DIRECTION_POS + CURRENT_DIRECTION_LEN,
       TOWER_CHANCE_LEN = 8,
 
-      CURRENT_LIFE_TIMER_POS = TOWER_CHANCE_POS + TOWER_CHANCE_LEN,
-      CURRENT_LIFE_TIMER_LEN = 10
+      CURRENT_BREADCRUMB_INDEX_POS = TOWER_CHANCE_POS + TOWER_CHANCE_LEN,
+      CURRENT_BREADCRUMB_INDEX_LEN = 8,
+
+      CURRENT_LIFE_TIMER_POS = CURRENT_BREADCRUMB_INDEX_POS + CURRENT_BREADCRUMB_INDEX_LEN,
+      CURRENT_LIFE_TIMER_LEN = 10,
+
+      ID_POS = CURRENT_LIFE_TIMER_POS + CURRENT_LIFE_TIMER_LEN,
+      ID_LEN = 10
     };
 
     typedef BitField<BitVector<BITS>, CURRENT_HEALTH_LEN, CURRENT_HEALTH_POS> AFCurrentHealth;
     typedef BitField<BitVector<BITS>, CURRENT_DIRECTION_LEN, CURRENT_DIRECTION_POS> AFCurrentDirection;
     typedef BitField<BitVector<BITS>, TOWER_CHANCE_LEN, TOWER_CHANCE_POS> AFTowerChance;
+    typedef BitField<BitVector<BITS>, CURRENT_BREADCRUMB_INDEX_LEN, CURRENT_BREADCRUMB_INDEX_POS>
+            AFCurrentBreadcrumbIndex;
     typedef BitField<BitVector<BITS>, CURRENT_LIFE_TIMER_LEN, CURRENT_LIFE_TIMER_POS> AFCurrentLifeTimer;
+    typedef BitField<BitVector<BITS>, ID_LEN, ID_POS> AFID;
 
   public:
 

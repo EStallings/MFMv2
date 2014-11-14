@@ -64,6 +64,30 @@ namespace MFM
       Element<CC>::SetName("Village");
     }
 
+    virtual u32 LocalPhysicsColor(const T& atom, u32 selector) const
+    {
+      u32 demand = Abstract_Element_Tower<CC>::GetCurrentDemand(atom);
+      switch(demand)
+      {
+        case 0:  return 0xff0000; break;
+        case 1:  return 0xff4c4c; break;
+        case 2:  return 0xe50000; break;
+        case 3:  return 0xe54c4c; break;
+        case 4:  return 0xcc0000; break;
+        case 5:  return 0xcc4c4c; break;
+        case 6:  return 0xb20000; break;
+        case 7:  return 0xb24c4c; break;
+        case 8:  return 0x990000; break;
+        case 9:  return 0x994c4c; break;
+        case 10: return 0x7f0000; break;
+        case 11: return 0x7f4c4c; break;
+        case 12: return 0x660000; break;
+        case 13: return 0x664c4c; break;
+        case 14: return 0x4c0000; break;
+        case 15: return 0x4c4c4c; break;
+        default: return 0xffffff; break;
+      }
+    }
     virtual u32 DefaultPhysicsColor() const
     {
       return 0xffff0b0b;
@@ -78,8 +102,6 @@ namespace MFM
 
       Abstract_Element_Tower<CC>::
       SetCurrentDemand(defaultAtom, rand() % (1<<Abstract_Element_Tower<CC>::CURRENT_DEMAND_LEN));
-
-      
 
       return defaultAtom;
     }

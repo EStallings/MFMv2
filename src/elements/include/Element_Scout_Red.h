@@ -79,8 +79,11 @@ namespace MFM
       Abstract_Element_Scout<CC>::
       SetCurrentDirection(defaultAtom, rand() % Dirs::DIR_COUNT);
 
+      u32 id = rand() % (1<<Abstract_Element_Scout<CC>::ID_LEN);
+      LOG.Debug("Made scout with id = %d", id);
       Abstract_Element_Scout<CC>::
-      SetID(defaultAtom, rand() % (1<<Abstract_Element_Scout<CC>::ID_LEN));
+      SetID(defaultAtom, id);
+
 
       Abstract_Element_Scout<CC>::
       SetCurrentLifeTimer(defaultAtom, (u32) Abstract_Element_Scout<CC>::m_defaultLifeTimer.GetValue());

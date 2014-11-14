@@ -77,11 +77,22 @@ namespace MFM
     {
       if(Abstract_Element_Breadcrumb<CC>::IsActive(atom))
       {
-	return 0x996600;
+	      return 0x666600;
+      }
+      else if(Abstract_Element_Breadcrumb<CC>::GetIsEndpoint(atom))
+      {
+        if(Abstract_Element_Breadcrumb<CC>::GetEndpointSwitch(atom))
+          return 0x330033;
+        else
+          return 0x003333;
+      }
+      else if(Abstract_Element_Breadcrumb<CC>::GetTrafficDir(atom))
+      {
+        return 0x666699;
       }
       else
       {
-	return DefaultPhysicsColor();
+        return DefaultPhysicsColor();
       }
     }
 

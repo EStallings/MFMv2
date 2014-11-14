@@ -1,5 +1,5 @@
 /*                                              -*- mode:C++ -*-
-  Abstract_Element_Scout.h Abstract Tower element for base class
+  Element_Scout.h Abstract Tower element for base class
   Copyright (C) 2014 The Regents of the University of New Mexico.  All rights reserved.
 
   This library is free software; you can redistribute it and/or
@@ -19,14 +19,14 @@
 */
 
 /**
-  \file   Abstract_Element_Scout.h Abstract Tower element for base class
+  \file   Element_Scout.h Abstract Tower element for base class
   \author Trent R. Small.
   \author Ezra Stallings
   \date (C) 2014 All rights reserved.
   \lgpl
  */
-#ifndef ABSTRACT_ELEMENT_SCOUT_H
-#define ABSTRACT_ELEMENT_SCOUT_H
+#ifndef ELEMENT_SCOUT_H
+#define ELEMENT_SCOUT_H
 
 #include "Element.h"
 #include "EventWindow.h"
@@ -34,7 +34,7 @@
 #include "itype.h"
 #include "P3Atom.h"
 #include "Element_Empty.h"
-#include "Abstract_Element_Breadcrumb.h"
+#include "Element_Breadcrumb.h"
 
 namespace MFM
 {
@@ -42,7 +42,7 @@ namespace MFM
   #define WAR_VERSION 1
 
   template <class CC>
-  class Abstract_Element_Scout : public Element<CC>
+  class Element_Scout : public Element<CC>
   {
     // Extract short names for parameter types
     typedef typename CC::ATOM_TYPE T;
@@ -76,10 +76,7 @@ namespace MFM
       CURRENT_LIFE_TIMER_LEN = 10,
 
       ID_POS = CURRENT_LIFE_TIMER_POS + CURRENT_LIFE_TIMER_LEN,
-      ID_LEN = 10,
-
-      TOWER_ID_POS = ID_POS + ID_LEN,
-      TOWER_ID_LEN = 10
+      ID_LEN = 10
     };
 
     typedef BitField<BitVector<BITS>, CURRENT_HEALTH_LEN, CURRENT_HEALTH_POS> AFCurrentHealth;
@@ -88,21 +85,65 @@ namespace MFM
             AFCurrentBreadcrumbIndex;
     typedef BitField<BitVector<BITS>, CURRENT_LIFE_TIMER_LEN, CURRENT_LIFE_TIMER_POS> AFCurrentLifeTimer;
     typedef BitField<BitVector<BITS>, ID_LEN, ID_POS> AFID;
-    typedef BitField<BitVector<BITS>, TOWER_ID_LEN, TOWER_ID_POS> AFTowerID;
 
   public:
+     static Element_Scout_Red<CC> THE_INSTANCE;
 
-    Abstract_Element_Scout(UUID u)
-      : Element<CC>(u),
+    static const u32 TYPE()
+    {
+      return THE_INSTANCE.GetType();
+    }
+
+    Element_Scout_Red()
+      : Element<CC>(MFM_UUID_FOR("ScoutXBRed", WAR_VERSION)),
         m_defaultHealth(this, "defaultHealth", "Default Health",
-                  "This is the health the scout will start with.", 1, 2, 15, 1),
+          "This is the health the scout will start with.", 1, 2, 15, 1),
         m_changeDirectionChance(this, "changeDirectionChance", "Change Direction Chance",
-		  "This is the chance of changing direction in a given tick.", 1, 20, 100, 1),
-	m_stutterChance(this, "stutterChance", "Stutter Movement Chance",
-			"This is the chance of stuttering movement.", 1, 10, 100,1),
-  m_defaultLifeTimer(this, "defaultLifeTimer", "Default Life Timer",
-                "This is the natural lifespan of the scout.", 1, 350, 1000, 10)
-    {}
+          "This is the chance of changing direction in a given tick.", 1, 20, 100, 1),
+        m_stutterChance(this, "stutterChance", "Stutter Movement Chance",
+          "This is the chance of stuttering movement.", 1, 10, 100,1),
+        m_defaultLifeTimer(this, "defaultLifeTimer", "Default Life Timer",
+          "This is the natural lifespan of the scout.", 1, 350, 1000, 10)
+    {
+      Element<CC>::SetAtomicSymbol("Sc");
+      Element<CC>::SetName("Red Scout");
+    }
+
+    virtual u32 DefaultPhysicsColor() const
+    {
+      return 0xffdda0a0;
+    }
+
+    virtual const T& GetDefaultAtom() const
+    {
+      static T defaultAtom(TYPE(),0,0,0);
+
+      Abstract_Element_Scout<CC>::
+      SetCurrentHealth(defaultAtom, (u32) Abstract_Element_Scout<CC>::m_defaultHealth.GetValue());
+
+      Abstract_Element_Scout<CC>::
+      SetCurrentDirection(defaultAtom, rand() % Dirs::DIR_COUNT);
+
+      Abstract_Element_Scout<CC>::
+      SetID(defaultAtom, rand() % (1<<Abstract_Element_Scout<CC>::ID_LEN));
+
+      Abstract_Element_Scout<CC>::
+      SetCurrentLifeTimer(defaultAtom, (u32) Abstract_Element_Scout<CC>::m_defaultLifeTimer.GetValue());
+
+      return defaultAtom;
+    }
+
+    virtual const Abstract_Element_Breadcrumb<CC>& GetBreadcrumbElement() const
+    {
+      return Element_Breadcrumb_Red<CC>::THE_INSTANCE;
+    }
+
+    virtual const bool IsAtomInteresting(EventWindow<CC>& window, const T& atom) const;
+
+    virtual const char* GetDescription() const
+    {
+      return "Red Scout element.";
+    }
 
     u32 GetID(const T& us) const
     {
@@ -112,16 +153,6 @@ namespace MFM
     void SetID(T& us, const u32 id) const
     {
       AFID::Write(this->GetBits(us), id);
-    }
-
-    u32 GetTowerID(const T& us) const
-    {
-      return AFTowerID::Read(this->GetBits(us));
-    }
-
-    void SetTowerID(T& us, const u32 id) const
-    {
-      AFTowerID::Write(this->GetBits(us), id);
     }
 
     u32 GetCurrentLifeTimer(const T& us) const
@@ -164,15 +195,10 @@ namespace MFM
       AFCurrentBreadcrumbIndex::Write(this->GetBits(us), i);
     }
 
-    virtual u32 Diffusability(EventWindow<CC> & ew, SPoint nowAt, SPoint maybeAt) const
-    {
-      return nowAt.Equals(maybeAt)?Element<CC>::COMPLETE_DIFFUSABILITY:0;
-    }
-
     virtual u32 PercentMovable(const T& you,
                                const T& me, const SPoint& offset) const
     {
-      return 0;
+      return 100;
     }
 
     T GetMutableAtom(const T& oldMe) const
@@ -181,9 +207,6 @@ namespace MFM
 
       return me;
     }
-
-    virtual const Abstract_Element_Breadcrumb<CC>& GetBreadcrumbElement() const = 0;
-    virtual const bool IsAtomInteresting(EventWindow<CC>& window, const T& atom) const = 0;
 
     virtual void Behavior(EventWindow<CC>& window) const
     {
@@ -212,10 +235,11 @@ namespace MFM
           
           if(IsAtomInteresting(window, window.GetRelativeAtom(pt)))
           {
-            const Abstract_Element_Breadcrumb<CC>& bcClass = GetBreadcrumbElement();
+            const Element_Breadcrumb<CC>& bcClass = GetBreadcrumbElement();
             T bc = bcClass.GetMutableAtom(bcClass.GetDefaultAtom());
             bcClass.SetIndex(bc, GetCurrentBreadcrumbIndex(self));
             bcClass.SetPrevIndex(bc, GetCurrentBreadcrumbIndex(self)-1);
+            bcClass.Alert(bc);
             window.SetCenterAtom(bc);
             return;
           }
@@ -246,12 +270,13 @@ namespace MFM
         if(window.IsLiveSite(vec) &&
           window.GetRelativeAtom(vec).GetType() == Element_Empty<CC>::THE_INSTANCE.GetType())
         {
-        	const Abstract_Element_Breadcrumb<CC>& bcClass = GetBreadcrumbElement();
+        	const Element_Breadcrumb<CC>& bcClass = GetBreadcrumbElement();
         	T bc = bcClass.GetMutableAtom(bcClass.GetDefaultAtom());
         	bcClass.SetIndex(bc,     GetCurrentBreadcrumbIndex(self));
           bcClass.SetPrevIndex(bc, GetCurrentBreadcrumbIndex(self)-1);
           bcClass.SetNextIndex(bc, GetCurrentBreadcrumbIndex(self)+1);
         	SetCurrentBreadcrumbIndex(self, GetCurrentBreadcrumbIndex(self) + 1);
+          bcClass.Cooldown(bc);
         	window.SetCenterAtom(self);
 
         	window.SetRelativeAtom(vec, bc);
@@ -263,4 +288,4 @@ namespace MFM
   };
 }
 
-#endif /* ABSTRACT_ELEMENT_SCOUT_H */
+#endif /* ELEMENT_SCOUT_H */
