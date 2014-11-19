@@ -77,7 +77,7 @@ namespace MFM
     {
       if(Abstract_Element_Breadcrumb<CC>::IsActive(atom))
       {
-	      return 0x666600;
+	      return 0x333333;
       }
       else if(Abstract_Element_Breadcrumb<CC>::GetIsEndpoint(atom))
       {
@@ -87,18 +87,14 @@ namespace MFM
           return 0x003333;
       }
       else if(Abstract_Element_Breadcrumb<CC>::GetTrafficDir(atom))
-      {
-        return 0x666699;
-      }
+        return 0x996666;
       else
-      {
         return DefaultPhysicsColor();
-      }
     }
 
     virtual u32 DefaultPhysicsColor() const
     {
-      return 0x996666;
+      return 0x666699;
     }
 
     // Non-diffusable

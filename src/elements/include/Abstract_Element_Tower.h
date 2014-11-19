@@ -47,10 +47,7 @@ namespace MFM
     enum { R = P::EVENT_WINDOW_RADIUS };
 
   protected:
-
-    ElementParameterS32<CC> m_colonistSpawnChance;
-    ElementParameterS32<CC> m_scoutSpawnChance;
-    ElementParameterS32<CC> m_resSpawnChance;
+    ElementParameterS32<CC> m_mode;
 
     enum
     {
@@ -58,36 +55,35 @@ namespace MFM
 
       //////
       // Element state fields
+      ID_POS = P3Atom<P>::P3_STATE_BITS_POS,
+      ID_LEN = 10,
 
-      CURRENT_DEMAND_POS = P3Atom<P>::P3_STATE_BITS_POS,
+      CURRENT_DEMAND_POS = ID_POS + ID_LEN,
       CURRENT_DEMAND_LEN = 4,
 
       LOCAL_DEMAND_POS = CURRENT_DEMAND_POS + CURRENT_DEMAND_LEN,
       LOCAL_DEMAND_LEN = 4,
 
-      NUM_CONNECTIONS_POS = LOCAL_DEMAND_POS + LOCAL_DEMAND_LEN,
-      NUM_CONNECTIONS_LEN = 3,
+      CURRENT_SUPPLY_POS = LOCAL_DEMAND_POS + LOCAL_DEMAND_LEN,
+      CURRENT_SUPPLY_LEN = 4,
 
-      ID_POS = NUM_CONNECTIONS_POS + NUM_CONNECTIONS_LEN,
-      ID_LEN = 10
+      NUM_CONNECTIONS_POS = CURRENT_SUPPLY_POS + CURRENT_SUPPLY_LEN,
+      NUM_CONNECTIONS_LEN = 3
+      
     };
 
+    typedef BitField<BitVector<BITS>, ID_LEN, ID_POS> AFID;
     typedef BitField<BitVector<BITS>, CURRENT_DEMAND_LEN, CURRENT_DEMAND_POS> AFCurrentDemand;
     typedef BitField<BitVector<BITS>, LOCAL_DEMAND_LEN, LOCAL_DEMAND_POS> AFLocalDemand;
+    typedef BitField<BitVector<BITS>, CURRENT_SUPPLY_LEN, CURRENT_SUPPLY_POS> AFCurrentSupply;
     typedef BitField<BitVector<BITS>, NUM_CONNECTIONS_LEN, NUM_CONNECTIONS_POS> AFNumConnections;
-    typedef BitField<BitVector<BITS>, ID_LEN, ID_POS> AFID;
-
 
   public:
 
-    Abstract_Element_Tower(UUID u)
-      : Element<CC>(u),
-        m_colonistSpawnChance(this, "colonistSpawnChance", "Colonist Spawn Chance",
-                  "This is the chance of spawning a colonist in a given tick.", 500, 5000, 10000, 500),
-        m_scoutSpawnChance(this, "scoutSpawnChance", "Scout Spawn Chance",
-                  "This is the chance of spawning a scout in a given tick.", 200, 1000, 10000, 100),
-        m_resSpawnChance(this, "resSpawnChance", "Res Spawn Chance",
-                  "This is the chance of res spawning in a given tick.", 1, 8, 20, 1)
+    Abstract_Element_Tower(UUID u): 
+      Element<CC>(u),
+      m_mode(this, "mode", "Simulation Mode",
+                  "This is the mode of simulation: 0 for no scouts spawn, 1 for scouts do spawn.", 1, 1, 2, 1)
     {}
 
     u32 GetID(const T& us) const
@@ -130,10 +126,20 @@ namespace MFM
       AFNumConnections::Write(this->GetBits(us), num);
     }
 
+    u32 GetCurrentSupply(const T& us) const
+    {
+      return AFCurrentSupply::Read(this->GetBits(us));
+    }
+
+    void SetCurrentSupply(T& us, const u32 num) const
+    {
+      AFCurrentSupply::Write(this->GetBits(us), num);
+    }
+
     T GetMutableAtom(const T& oldMe) const
     {
       T me = oldMe;
-
+      
       return me;
     }
 
@@ -147,10 +153,6 @@ namespace MFM
     {
       return 0;
     }
-
-
-    virtual const typename CC::ATOM_TYPE& GetDefaultScout() const = 0;
-    virtual const typename CC::ATOM_TYPE& GetDefaultColonist() const = 0;
 
     void PlaceAtomRandomly(EventWindow<CC>& window, const T& atom) const
     {
@@ -170,7 +172,8 @@ namespace MFM
             }
           }
         }
-        window.SetRelativeAtom(location, atom);
+        if(emptyCount > 0)
+          window.SetRelativeAtom(location, atom);
       }
   };
 }

@@ -19,7 +19,7 @@
 	    {
 
 	    	const u32 type = atom.GetType();
-	    	if(Element_Tower_Red<CC>::THE_INSTANCE.GetType() == type)
+	    	if(Element_Tower_Red<CC>::THE_INSTANCE.GetType() == type && Element_Scout_Red<CC>::THE_INSTANCE.GetTowerID(window.GetCenterAtom()) != Element_Tower_Red<CC>::THE_INSTANCE.GetID(atom))
     		{
     			return true;
     		}

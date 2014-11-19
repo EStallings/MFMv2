@@ -96,18 +96,22 @@ namespace MFM
     virtual const T& GetDefaultAtom() const
     {
       static T defaultAtom(TYPE(),0,0,0);
+      u32 id     = rand() % (1<<Abstract_Element_Tower<CC>::ID_LEN);
+      u32 demand = rand() % (1<<Abstract_Element_Tower<CC>::CURRENT_DEMAND_LEN);
+      u32 supply = rand() % (1<<Abstract_Element_Tower<CC>::CURRENT_SUPPLY_LEN);
+      
+      Abstract_Element_Tower<CC>::SetID(defaultAtom, id);
+      Abstract_Element_Tower<CC>::SetCurrentDemand(defaultAtom, demand);
+      Abstract_Element_Tower<CC>::SetCurrentSupply(defaultAtom, supply);
 
-      Abstract_Element_Tower<CC>::
-      SetID(defaultAtom, rand() % (1<<Abstract_Element_Tower<CC>::ID_LEN));
-
-      Abstract_Element_Tower<CC>::
-      SetCurrentDemand(defaultAtom, rand() % (1<<Abstract_Element_Tower<CC>::CURRENT_DEMAND_LEN));
+      LOG.Debug("Making new tower with id=[%d]/[%d] demand=[%d]/[%d] supply=[%d]/[%d] !!", 
+        Abstract_Element_Tower<CC>::GetID(defaultAtom), id,
+        Abstract_Element_Tower<CC>::GetCurrentDemand(defaultAtom), demand,
+        Abstract_Element_Tower<CC>::GetCurrentSupply(defaultAtom), supply );
 
       return defaultAtom;
     }
 
-    const typename CC::ATOM_TYPE& GetDefaultScout() const;
-    const typename CC::ATOM_TYPE& GetDefaultColonist() const;
     virtual void Behavior(EventWindow<CC>& window) const;
     
     virtual const char* GetDescription() const

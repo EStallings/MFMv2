@@ -8,19 +8,18 @@
 		template <class CC>
 		void Element_Breadcrumb_Red<CC>::Behavior(EventWindow<CC>& window) const
 		{
-			const T& me = window.GetCenterAtom();
 			Random & random = window.GetRandom();
 
 			//Delayed start to behavior to ensure everything gets linked!
-			if(GetActive(me) > 0){
+			if(GetActive(window.GetCenterAtom()) > 0){
 				T mutableMe = GetMutableAtom(window.GetCenterAtom());
-				SetActive(mutableMe, GetActive(me) - 1);
+				SetActive(mutableMe, GetActive(window.GetCenterAtom()) - 1);
 				SetIsEndpoint(mutableMe, 0);	
 				window.SetCenterAtom(mutableMe);
 				return;
 			}
 
-			//LOG.Debug("Examining BC:%d; Pred=%d, Succ=%d, timer=%d", GetIndex(me), GetPrevIndex(me), GetNextIndex(me), GetActive(me));
+			//LOG.Debug("Examining BC:%d; Pred=%d, Succ=%d, timer=%d", GetIndex(window.GetCenterAtom()), GetPrevIndex(window.GetCenterAtom()), GetNextIndex(window.GetCenterAtom()), GetActive(window.GetCenterAtom()));
 
 			MDist<R>& md = MDist<R>::get();
 			SPoint pred, succ;
@@ -43,12 +42,12 @@
 
 				if(window.GetRelativeAtom(pt).GetType() == Element_Breadcrumb_Red<CC>::THE_INSTANCE.GetType())
 				{
-					if(GetIndex(window.GetRelativeAtom(pt)) == GetPrevIndex(me) && GetPathID(window.GetRelativeAtom(pt)) == GetPathID(me))
+					if(GetIndex(window.GetRelativeAtom(pt)) == GetPrevIndex(window.GetCenterAtom()) && GetPathID(window.GetRelativeAtom(pt)) == GetPathID(window.GetCenterAtom()))
 					{
 						pred = pt;
 						fP = true;
 					}
-					else if(GetIndex(window.GetRelativeAtom(pt)) == GetNextIndex(me) && GetPathID(window.GetRelativeAtom(pt)) == GetPathID(me))
+					else if(GetIndex(window.GetRelativeAtom(pt)) == GetNextIndex(window.GetCenterAtom()) && GetPathID(window.GetRelativeAtom(pt)) == GetPathID(window.GetCenterAtom()))
 					{
 						succ = pt;
 						fS = true;
@@ -80,7 +79,7 @@
 
 			//logic if we need to interact with a tower
 			if(!fP || !fS){
-				if(!GetIsEndpoint(me)){
+				if(!GetIsEndpoint(window.GetCenterAtom())){
 					T mutableMe = GetMutableAtom(window.GetCenterAtom());
 					SetIsEndpoint(mutableMe, 1);	
 					window.SetCenterAtom(mutableMe);
@@ -89,8 +88,8 @@
 				{
 					pred = towerPos; //for positioning
 					T mutableMe = GetMutableAtom(window.GetCenterAtom());
-					SetDownstreamLocalDemand(mutableMe, Element_Tower_Red<CC>::THE_INSTANCE.GetLocalDemand(window.GetRelativeAtom(pred)));
-					SetDownstreamDemand(mutableMe, Element_Tower_Red<CC>::THE_INSTANCE.GetCurrentDemand(window.GetRelativeAtom(pred)));
+					SetUpstreamLocalDemand(mutableMe, Element_Tower_Red<CC>::THE_INSTANCE.GetLocalDemand(window.GetRelativeAtom(pred)));
+					SetUpstreamDemand(mutableMe, Element_Tower_Red<CC>::THE_INSTANCE.GetCurrentDemand(window.GetRelativeAtom(pred)));
 					SetEndpointSwitch(mutableMe, 0);
 					window.SetCenterAtom(mutableMe);
 				}
@@ -98,8 +97,8 @@
 				{
 					succ = towerPos; //for positioning
 					T mutableMe = GetMutableAtom(window.GetCenterAtom());
-					SetUpstreamLocalDemand(mutableMe, Element_Tower_Red<CC>::THE_INSTANCE.GetLocalDemand(window.GetRelativeAtom(succ)));
-					SetUpstreamDemand(mutableMe, Element_Tower_Red<CC>::THE_INSTANCE.GetCurrentDemand(window.GetRelativeAtom(succ)));
+					SetDownstreamLocalDemand(mutableMe, Element_Tower_Red<CC>::THE_INSTANCE.GetLocalDemand(window.GetRelativeAtom(succ)));
+					SetDownstreamDemand(mutableMe, Element_Tower_Red<CC>::THE_INSTANCE.GetCurrentDemand(window.GetRelativeAtom(succ)));
 					SetEndpointSwitch(mutableMe, 1);
 					window.SetCenterAtom(mutableMe);
 				}
@@ -109,7 +108,7 @@
 			else if(fR)
 			{
 				SPoint goal = succ;
-				if(GetTrafficDir(me) == 1)
+				if(GetTrafficDir(window.GetCenterAtom()) == 1)
 					goal = pred;
 				u32 minDist = 16;
 				SPoint minPos = resPos;
@@ -133,8 +132,8 @@
 			if(fP)
 			{
 				T mutableMe = GetMutableAtom(window.GetCenterAtom());
-				SetDownstreamLocalDemand(mutableMe, GetDownstreamLocalDemand(window.GetRelativeAtom(pred)));
-				SetDownstreamDemand(mutableMe, GetDownstreamDemand(window.GetRelativeAtom(pred)));
+				SetUpstreamLocalDemand(mutableMe, GetUpstreamLocalDemand(window.GetRelativeAtom(pred)));
+				SetUpstreamDemand(mutableMe, GetUpstreamDemand(window.GetRelativeAtom(pred)));
 				window.SetCenterAtom(mutableMe);
 			}
 
@@ -142,37 +141,41 @@
 			if(fS)
 			{
 				T mutableMe = GetMutableAtom(window.GetCenterAtom());
-				SetUpstreamLocalDemand(mutableMe, GetUpstreamLocalDemand(window.GetRelativeAtom(pred)));
-				SetUpstreamDemand(mutableMe, GetUpstreamDemand(window.GetRelativeAtom(pred)));
+				SetDownstreamLocalDemand(mutableMe, GetDownstreamLocalDemand(window.GetRelativeAtom(succ)));
+				SetDownstreamDemand(mutableMe, GetDownstreamDemand(window.GetRelativeAtom(succ)));
 				window.SetCenterAtom(mutableMe);
 			}
 
+
+			// LOG.Debug("Breadcrumb %d|%d has UP=%d, DOWN=%d, Dir=%d", GetIndex(window.GetCenterAtom()), GetPathID(window.GetCenterAtom()), GetUpstreamLocalDemand(window.GetCenterAtom()), GetDownstreamLocalDemand(window.GetCenterAtom()), GetTrafficDir(window.GetCenterAtom()));
 			//modify traffic direction
-			if(GetUpstreamLocalDemand(me) > GetDownstreamLocalDemand(me) && GetTrafficDir(me) == 0)
+			if(GetUpstreamLocalDemand(window.GetCenterAtom()) > GetDownstreamLocalDemand(window.GetCenterAtom()) && GetTrafficDir(window.GetCenterAtom()) == 0)
 			{
 				T mutableMe = GetMutableAtom(window.GetCenterAtom());
 				SetTrafficDir(mutableMe, 1);
 				window.SetCenterAtom(mutableMe);
 			}
 
-			else if(GetUpstreamLocalDemand(me) < GetDownstreamLocalDemand(me) && GetTrafficDir(me) == 1)
+			else if(GetUpstreamLocalDemand(window.GetCenterAtom()) < GetDownstreamLocalDemand(window.GetCenterAtom()) && GetTrafficDir(window.GetCenterAtom()) == 1)
 			{
 				T mutableMe = GetMutableAtom(window.GetCenterAtom());
 				SetTrafficDir(mutableMe, 0);
 				window.SetCenterAtom(mutableMe);
 			}
+
+
 			//Move to average position
 			if((pred-succ).GetManhattanLength() < R)
 			{
 
-				//LOG.Debug("Deleting BC:%d; Pred=%d, Succ=%d", GetIndex(me), GetPrevIndex(me), GetNextIndex(me));
+				//LOG.Debug("Deleting BC:%d; Pred=%d, Succ=%d", GetIndex(window.GetCenterAtom()), GetPrevIndex(window.GetCenterAtom()), GetNextIndex(window.GetCenterAtom()));
 
 				T predAtom = GetMutableAtom(window.GetRelativeAtom(pred));
-				SetNextIndex(predAtom, GetNextIndex(me));
+				SetNextIndex(predAtom, GetNextIndex(window.GetCenterAtom()));
 				window.SetRelativeAtom(pred, predAtom);
 
 				T succAtom = GetMutableAtom(window.GetRelativeAtom(succ));
-				SetPrevIndex(succAtom, GetPrevIndex(me));
+				SetPrevIndex(succAtom, GetPrevIndex(window.GetCenterAtom()));
 				window.SetRelativeAtom(succ, succAtom);
 
 				window.SetCenterAtom(Element_Empty<CC>::THE_INSTANCE.GetDefaultAtom());
