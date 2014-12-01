@@ -62,7 +62,7 @@ namespace MFM
       CURRENT_DEMAND_LEN = 4,
 
       LOCAL_DEMAND_POS = CURRENT_DEMAND_POS + CURRENT_DEMAND_LEN,
-      LOCAL_DEMAND_LEN = 4,
+      LOCAL_DEMAND_LEN = 5,
 
       CURRENT_SUPPLY_POS = LOCAL_DEMAND_POS + LOCAL_DEMAND_LEN,
       CURRENT_SUPPLY_LEN = 4,
@@ -93,6 +93,8 @@ namespace MFM
 
     void SetID(T& us, const u32 id) const
     {
+      LOG.Debug("P3 bits: %d, ID bits: %d, demand: %d, supply: %d\n", P3Atom<P>::P3_STATE_BITS_POS, ID_POS, CURRENT_DEMAND_POS, CURRENT_SUPPLY_POS);
+       
       AFID::Write(this->GetBits(us), id);
     }
 

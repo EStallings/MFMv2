@@ -81,7 +81,7 @@ namespace MFM
         }
       }
     }
-
+    localDemand = (int)((float)localDemand/(float)numConnections);
     T mutableMe = GetMutableAtom(window.GetCenterAtom());
     SetLocalDemand(mutableMe, GetCurrentDemand(window.GetCenterAtom()) + localDemand);
     SetNumConnections(mutableMe, numConnections);

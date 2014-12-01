@@ -107,25 +107,33 @@
 			//Otherwise, move res
 			else if(fR)
 			{
+
 				SPoint goal = succ;
 				if(GetTrafficDir(window.GetCenterAtom()) == 1)
 					goal = pred;
-				u32 minDist = 16;
-				SPoint minPos = resPos;
 				for(u32 i = md.GetFirstIndex(1); i <= md.GetLastIndex(R); i++)
 				{
 					SPoint pt = md.GetPoint(i);
-					if(window.GetRelativeAtom(pt).GetType() == Element_Empty<CC>::THE_INSTANCE.GetType())
+					if(window.GetRelativeAtom(pt).GetType() == resType)
 					{
-						u32 dist = (pt-goal).GetManhattanLength();
-						if(dist < minDist)
+						u32 minDist = 16;
+						SPoint minPos = pt;
+						for(u32 j = md.GetFirstIndex(1); j <= md.GetLastIndex(R); j++)
 						{
-							minPos = pt;
+							SPoint pt2 = md.GetPoint(j);
+							if(window.GetRelativeAtom(pt2).GetType() == Element_Empty<CC>::THE_INSTANCE.GetType())
+							{
+								u32 dist = (pt2-goal).GetManhattanLength();
+								if(dist < minDist)
+								{
+									minPos = pt2;
+								}
+								//LOG.Debug("Moving res a distance of %d from goal!", dist);
+							}
 						}
-						//LOG.Debug("Moving res a distance of %d from goal!", dist);
+						window.SwapAtoms(minPos, pt);
 					}
 				}
-				window.SwapAtoms(minPos, resPos);
 			}
 
 			//get pred's data
