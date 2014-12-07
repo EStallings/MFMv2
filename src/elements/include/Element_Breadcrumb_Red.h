@@ -67,10 +67,10 @@ namespace MFM
     }
 
     Element_Breadcrumb_Red() :
-      Abstract_Element_Breadcrumb<CC>(MFM_UUID_FOR("Breadcrumb", 1))
+      Abstract_Element_Breadcrumb<CC>(MFM_UUID_FOR("Trail", 1))
     {
-      Element<CC>::SetAtomicSymbol("Bc");
-      Element<CC>::SetName("Breadcrumb");
+      Element<CC>::SetAtomicSymbol("Tr");
+      Element<CC>::SetName("Trail");
     }
 
     virtual u32 LocalPhysicsColor(const T& atom, u32 selector) const

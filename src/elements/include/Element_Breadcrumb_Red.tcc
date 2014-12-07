@@ -11,10 +11,10 @@
 			Random & random = window.GetRandom();
 
 			//Delayed start to behavior to ensure everything gets linked!
-			if(GetActive(window.GetCenterAtom()) > 0){
-				T mutableMe = GetMutableAtom(window.GetCenterAtom());
-				SetActive(mutableMe, GetActive(window.GetCenterAtom()) - 1);
-				SetIsEndpoint(mutableMe, 0);	
+			if(this->GetActive(window.GetCenterAtom()) > 0){
+				T mutableMe = this->GetMutableAtom(window.GetCenterAtom());
+				this->SetActive(mutableMe, this->GetActive(window.GetCenterAtom()) - 1);
+				this->SetIsEndpoint(mutableMe, 0);
 				window.SetCenterAtom(mutableMe);
 				return;
 			}
@@ -42,12 +42,12 @@
 
 				if(window.GetRelativeAtom(pt).GetType() == Element_Breadcrumb_Red<CC>::THE_INSTANCE.GetType())
 				{
-					if(GetIndex(window.GetRelativeAtom(pt)) == GetPrevIndex(window.GetCenterAtom()) && GetPathID(window.GetRelativeAtom(pt)) == GetPathID(window.GetCenterAtom()))
+					if(this->GetIndex(window.GetRelativeAtom(pt)) == this->GetPrevIndex(window.GetCenterAtom()) && this->GetPathID(window.GetRelativeAtom(pt)) == this->GetPathID(window.GetCenterAtom()))
 					{
 						pred = pt;
 						fP = true;
 					}
-					else if(GetIndex(window.GetRelativeAtom(pt)) == GetNextIndex(window.GetCenterAtom()) && GetPathID(window.GetRelativeAtom(pt)) == GetPathID(window.GetCenterAtom()))
+					else if(this->GetIndex(window.GetRelativeAtom(pt)) == this->GetNextIndex(window.GetCenterAtom()) && this->GetPathID(window.GetRelativeAtom(pt)) == this->GetPathID(window.GetCenterAtom()))
 					{
 						succ = pt;
 						fS = true;
@@ -79,27 +79,27 @@
 
 			//logic if we need to interact with a tower
 			if(!fP || !fS){
-				if(!GetIsEndpoint(window.GetCenterAtom())){
-					T mutableMe = GetMutableAtom(window.GetCenterAtom());
-					SetIsEndpoint(mutableMe, 1);	
+				if(!this->GetIsEndpoint(window.GetCenterAtom())){
+					T mutableMe = this->GetMutableAtom(window.GetCenterAtom());
+					this->SetIsEndpoint(mutableMe, 1);
 					window.SetCenterAtom(mutableMe);
 				}
 				if(!fP)
 				{
 					pred = towerPos; //for positioning
-					T mutableMe = GetMutableAtom(window.GetCenterAtom());
-					SetUpstreamLocalDemand(mutableMe, Element_Tower_Red<CC>::THE_INSTANCE.GetLocalDemand(window.GetRelativeAtom(pred)));
-					SetUpstreamDemand(mutableMe, Element_Tower_Red<CC>::THE_INSTANCE.GetCurrentDemand(window.GetRelativeAtom(pred)));
-					SetEndpointSwitch(mutableMe, 0);
+					T mutableMe = this->GetMutableAtom(window.GetCenterAtom());
+					this->SetUpstreamLocalDemand(mutableMe, Element_Tower_Red<CC>::THE_INSTANCE.GetLocalDemand(window.GetRelativeAtom(pred)));
+					this->SetUpstreamDemand(mutableMe, Element_Tower_Red<CC>::THE_INSTANCE.GetCurrentDemand(window.GetRelativeAtom(pred)));
+					this->SetEndpointSwitch(mutableMe, 0);
 					window.SetCenterAtom(mutableMe);
 				}
 				else if(!fS)
 				{
 					succ = towerPos; //for positioning
-					T mutableMe = GetMutableAtom(window.GetCenterAtom());
-					SetDownstreamLocalDemand(mutableMe, Element_Tower_Red<CC>::THE_INSTANCE.GetLocalDemand(window.GetRelativeAtom(succ)));
-					SetDownstreamDemand(mutableMe, Element_Tower_Red<CC>::THE_INSTANCE.GetCurrentDemand(window.GetRelativeAtom(succ)));
-					SetEndpointSwitch(mutableMe, 1);
+					T mutableMe = this->GetMutableAtom(window.GetCenterAtom());
+					this->SetDownstreamLocalDemand(mutableMe, Element_Tower_Red<CC>::THE_INSTANCE.GetLocalDemand(window.GetRelativeAtom(succ)));
+					this->SetDownstreamDemand(mutableMe, Element_Tower_Red<CC>::THE_INSTANCE.GetCurrentDemand(window.GetRelativeAtom(succ)));
+					this->SetEndpointSwitch(mutableMe, 1);
 					window.SetCenterAtom(mutableMe);
 				}
 			}
@@ -109,7 +109,7 @@
 			{
 
 				SPoint goal = succ;
-				if(GetTrafficDir(window.GetCenterAtom()) == 1)
+				if(this->GetTrafficDir(window.GetCenterAtom()) == 1)
 					goal = pred;
 				for(u32 i = md.GetFirstIndex(1); i <= md.GetLastIndex(R); i++)
 				{
@@ -139,35 +139,35 @@
 			//get pred's data
 			if(fP)
 			{
-				T mutableMe = GetMutableAtom(window.GetCenterAtom());
-				SetUpstreamLocalDemand(mutableMe, GetUpstreamLocalDemand(window.GetRelativeAtom(pred)));
-				SetUpstreamDemand(mutableMe, GetUpstreamDemand(window.GetRelativeAtom(pred)));
+				T mutableMe = this->GetMutableAtom(window.GetCenterAtom());
+				this->SetUpstreamLocalDemand(mutableMe, this->GetUpstreamLocalDemand(window.GetRelativeAtom(pred)));
+				this->SetUpstreamDemand(mutableMe, this->GetUpstreamDemand(window.GetRelativeAtom(pred)));
 				window.SetCenterAtom(mutableMe);
 			}
 
 			//get succ's data
 			if(fS)
 			{
-				T mutableMe = GetMutableAtom(window.GetCenterAtom());
-				SetDownstreamLocalDemand(mutableMe, GetDownstreamLocalDemand(window.GetRelativeAtom(succ)));
-				SetDownstreamDemand(mutableMe, GetDownstreamDemand(window.GetRelativeAtom(succ)));
+				T mutableMe = this->GetMutableAtom(window.GetCenterAtom());
+				this->SetDownstreamLocalDemand(mutableMe, this->GetDownstreamLocalDemand(window.GetRelativeAtom(succ)));
+				this->SetDownstreamDemand(mutableMe, this->GetDownstreamDemand(window.GetRelativeAtom(succ)));
 				window.SetCenterAtom(mutableMe);
 			}
 
 
 			// LOG.Debug("Breadcrumb %d|%d has UP=%d, DOWN=%d, Dir=%d", GetIndex(window.GetCenterAtom()), GetPathID(window.GetCenterAtom()), GetUpstreamLocalDemand(window.GetCenterAtom()), GetDownstreamLocalDemand(window.GetCenterAtom()), GetTrafficDir(window.GetCenterAtom()));
 			//modify traffic direction
-			if(GetUpstreamLocalDemand(window.GetCenterAtom()) > GetDownstreamLocalDemand(window.GetCenterAtom()) && GetTrafficDir(window.GetCenterAtom()) == 0)
+			if(this->GetUpstreamLocalDemand(window.GetCenterAtom()) > this->GetDownstreamLocalDemand(window.GetCenterAtom()) && this->GetTrafficDir(window.GetCenterAtom()) == 0)
 			{
-				T mutableMe = GetMutableAtom(window.GetCenterAtom());
-				SetTrafficDir(mutableMe, 1);
+				T mutableMe = this->GetMutableAtom(window.GetCenterAtom());
+				this->SetTrafficDir(mutableMe, 1);
 				window.SetCenterAtom(mutableMe);
 			}
 
-			else if(GetUpstreamLocalDemand(window.GetCenterAtom()) < GetDownstreamLocalDemand(window.GetCenterAtom()) && GetTrafficDir(window.GetCenterAtom()) == 1)
+			else if(this->GetUpstreamLocalDemand(window.GetCenterAtom()) < this->GetDownstreamLocalDemand(window.GetCenterAtom()) && this->GetTrafficDir(window.GetCenterAtom()) == 1)
 			{
-				T mutableMe = GetMutableAtom(window.GetCenterAtom());
-				SetTrafficDir(mutableMe, 0);
+				T mutableMe = this->GetMutableAtom(window.GetCenterAtom());
+				this->SetTrafficDir(mutableMe, 0);
 				window.SetCenterAtom(mutableMe);
 			}
 
@@ -178,12 +178,12 @@
 
 				//LOG.Debug("Deleting BC:%d; Pred=%d, Succ=%d", GetIndex(window.GetCenterAtom()), GetPrevIndex(window.GetCenterAtom()), GetNextIndex(window.GetCenterAtom()));
 
-				T predAtom = GetMutableAtom(window.GetRelativeAtom(pred));
-				SetNextIndex(predAtom, GetNextIndex(window.GetCenterAtom()));
+				T predAtom = this->GetMutableAtom(window.GetRelativeAtom(pred));
+				this->SetNextIndex(predAtom, this->GetNextIndex(window.GetCenterAtom()));
 				window.SetRelativeAtom(pred, predAtom);
 
-				T succAtom = GetMutableAtom(window.GetRelativeAtom(succ));
-				SetPrevIndex(succAtom, GetPrevIndex(window.GetCenterAtom()));
+				T succAtom = this->GetMutableAtom(window.GetRelativeAtom(succ));
+				this->SetPrevIndex(succAtom, this->GetPrevIndex(window.GetCenterAtom()));
 				window.SetRelativeAtom(succ, succAtom);
 
 				window.SetCenterAtom(Element_Empty<CC>::THE_INSTANCE.GetDefaultAtom());
@@ -202,4 +202,3 @@
 			}
 		}
 	}
-	
